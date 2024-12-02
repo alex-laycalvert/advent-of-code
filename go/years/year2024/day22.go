@@ -1,0 +1,13 @@
+package year2024
+
+type Day22 struct {
+    Input []string
+}
+
+func (d Day22) Part1() string {
+    return "Not Implemented"
+}
+
+func (d Day22) Part2() string {
+    return "Not Implemented"
+}
