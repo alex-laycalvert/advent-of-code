@@ -30,7 +30,8 @@ func main() {
 	utils.PanicErr(err)
 	input := utils.ReadFile(inputPath)
 
-	day := days.NewDay(yearNum, dayNum, input)
+	day, err := days.NewDay(yearNum, dayNum, input)
+	utils.PanicErr(err)
 
 	part1, ms := utils.TimeFunc(day.Part1, timingIterations)
 	fmt.Printf("Part 1: %s - Avg Time: %vms\n", part1, ms)

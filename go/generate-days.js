@@ -5,7 +5,7 @@ import { mkdir, writeFile } from "fs/promises";
 
 async function main() {
     const year = process.argv[2];
-    const days = Array.from({ length: 25 }, (_, i) => i + 3);
+    const days = Array.from({ length: 25 }, (_, i) => i + 1);
     await mkdir(`./years/year${year}`, { recursive: true });
     await Promise.all(
         days.map((day) =>

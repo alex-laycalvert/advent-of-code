@@ -1,7 +1,7 @@
 package year2023
 
 type Day12 struct {
-    input string
+    Input []string
 }
 
 func (d Day12) Part1() string {
