@@ -56,3 +56,27 @@ func TestDay2(t *testing.T) {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
 }
+
+func TestDay3(t *testing.T) {
+	day3 := year2023.Day3{Input: []string{
+		"467..114..",
+		"...*......",
+		"..35..633.",
+		"......#...",
+		"617*......",
+		".....+.58.",
+		"..592.....",
+		"......755.",
+		"...$.*....",
+		".664.598..",
+	}}
+	expected := "4361"
+	if actual := day3.Part1(); actual != expected {
+		t.Errorf("Expected %s but got %s", expected, actual)
+	}
+
+	expected = "467835"
+	if actual := day3.Part2(); actual != expected {
+		t.Errorf("Expected %s but got %s", expected, actual)
+	}
+}
