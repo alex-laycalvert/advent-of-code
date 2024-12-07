@@ -188,7 +188,7 @@ func TestDay7(t *testing.T) {
 		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
 	}
 
-	expectedPart2 := "Not Implemented"
+	expectedPart2 := "11387"
 	part2 := day7.Part2()
 	if part2 != expectedPart2 {
 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
