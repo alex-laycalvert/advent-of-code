@@ -154,13 +154,13 @@ func TestDay6(t *testing.T) {
 		"........#.",
 		"#.........",
 		"......#...",
-	}, ShowSimulation: true}
+	}}
 
-	// expectedPart1 := "41"
-	// part1 := day6.Part1()
-	// if part1 != expectedPart1 {
-	// 	t.Fatalf("Expected %s, got %s", expectedPart1, part1)
-	// }
+	expectedPart1 := "41"
+	part1 := day6.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
 
 	expectedPart2 := "6"
 	part2 := day6.Part2()

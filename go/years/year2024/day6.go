@@ -4,7 +4,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // ANSWERS:
@@ -13,8 +12,7 @@ import (
 //
 // Part 2:
 type Day6 struct {
-	Input          []string
-	ShowSimulation bool
+	Input []string
 }
 
 type Pos struct {
@@ -35,67 +33,38 @@ func (p *Pos) TurnRight() {
 	p.x, p.y = -p.y, p.x
 }
 
-func (p *Pos) TurnLeft() {
-	p.x, p.y = p.y, -p.x
-}
-
 // avg ~0.66ms per iter over 10k iters
 func (d Day6) Part1() string {
 	pos := d.getInitialPosiiton()
 	dir := Pos{0, -1}
-	width, height := len(d.Input[0]), len(d.Input)
-	visitedPositions := map[string]bool{}
-	path := 0
-	for pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height {
-		if d.ShowSimulation {
-			d.Input[pos.y] = d.Input[pos.y][:pos.x] + "X" + d.Input[pos.y][pos.x+1:]
-		}
-		if !visitedPositions[pos.String()] {
-			visitedPositions[pos.String()] = true
-			path++
-		}
 
-		if pos.x+dir.x < 0 || pos.x+dir.x >= width || pos.y+dir.y < 0 || pos.y+dir.y >= height {
-			break
-		}
+	path := d.walk(pos, dir)
 
-		d.movePlayer(&pos, &dir)
-
-		if d.ShowSimulation {
-			for _, line := range d.Input {
-				println(line)
-			}
-			time.Sleep(1 * time.Second)
-		}
-	}
-
-	return strconv.Itoa(path)
+	return strconv.Itoa(len(path))
 }
 
 func (d Day6) Part2() string {
-	return d.part2_naive()
-}
-
-func (d *Day6) part2_naive() string {
 	// determine initial position
 	pos := d.getInitialPosiiton()
 	dir := Pos{0, -1}
+	path := d.walk(pos, dir)
 
 	sum := 0
-	for row, line := range d.Input {
-		for col, char := range line {
-			// already a block or original starting position here
-			if char == '#' || char == '^' {
-				continue
-			}
-
-			// place a blockade, run simulation
-			d.Input[row] = d.Input[row][:col] + "#" + d.Input[row][col+1:]
-			if d.doesFindLoop(pos, dir) {
-				sum++
-			}
-			d.Input[row] = d.Input[row][:col] + "." + d.Input[row][col+1:]
+	for _, blockPos := range path {
+		row := blockPos.y
+		col := blockPos.x
+		char := d.Input[row][col]
+		// already a block or original starting position here
+		if char == '#' || char == '^' {
+			continue
 		}
+
+		// place a blockade, run simulation
+		d.Input[row] = d.Input[row][:col] + "#" + d.Input[row][col+1:]
+		if d.doesFindLoop(pos, dir) {
+			sum++
+		}
+		d.Input[row] = d.Input[row][:col] + "." + d.Input[row][col+1:]
 	}
 
 	return strconv.Itoa(sum)
@@ -113,7 +82,7 @@ func (d *Day6) getInitialPosiiton() Pos {
 	return pos
 }
 
-func (d *Day6) movePlayer(pos *Pos, dir *Pos) {
+func (d *Day6) move(pos *Pos, dir *Pos) {
 	// normal movement procedure
 	if d.Input[pos.y+dir.y][pos.x+dir.x] == '#' {
 		dir.TurnRight()
@@ -144,8 +113,28 @@ func (d *Day6) doesFindLoop(pos Pos, dir Pos) bool {
 
 		visitedPosDirs[pos.String()] = append(visitedPosDirs[pos.String()], dir.String())
 
-		d.movePlayer(&pos, &dir)
+		d.move(&pos, &dir)
 	}
 
 	return false
+}
+
+func (d *Day6) walk(pos Pos, dir Pos) []Pos {
+	width, height := len(d.Input[0]), len(d.Input)
+	visited := map[string]bool{}
+	path := []Pos{}
+
+	for pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height {
+		if !visited[pos.String()] {
+			visited[pos.String()] = true
+			path = append(path, pos)
+		}
+
+		if pos.x+dir.x < 0 || pos.x+dir.x >= width || pos.y+dir.y < 0 || pos.y+dir.y >= height {
+			break
+		}
+
+		d.move(&pos, &dir)
+	}
+	return path
 }
