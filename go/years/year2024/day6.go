@@ -1,6 +1,7 @@
 package year2024
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -19,6 +20,11 @@ type Day6 struct {
 type Pos struct {
 	x int
 	y int
+}
+
+type PosDirPair struct {
+	pos string
+	dir string
 }
 
 func (p Pos) String() string {
@@ -53,12 +59,7 @@ func (d Day6) Part1() string {
 			break
 		}
 
-		// turn right
-		if d.Input[pos.y+dir.y][pos.x+dir.x] == '#' {
-			dir.TurnRight()
-		}
-		pos.y += dir.y
-		pos.x += dir.x
+		d.movePlayer(&pos, &dir)
 
 		if d.ShowSimulation {
 			for _, line := range d.Input {
@@ -72,43 +73,28 @@ func (d Day6) Part1() string {
 }
 
 func (d Day6) Part2() string {
+	return d.part2_naive()
+}
+
+func (d *Day6) part2_naive() string {
 	// determine initial position
 	pos := d.getInitialPosiiton()
 	dir := Pos{0, -1}
-	width, height := len(d.Input[0]), len(d.Input)
 
-	visitedPositions := map[string]string{}
 	sum := 0
-	for pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height {
-		dir.TurnRight()
-		pos.y += dir.y
-		pos.x += dir.x
-		visitedDir, ok := visitedPositions[pos.String()]
-		if ok && dir.String() == visitedDir {
-			sum++
-		}
-		pos.y -= dir.y
-		pos.x -= dir.x
-		dir.TurnLeft()
-
-		visitedPositions[pos.String()] = dir.String()
-
-		if pos.x+dir.x < 0 || pos.x+dir.x >= width || pos.y+dir.y < 0 || pos.y+dir.y >= height {
-			break
-		}
-
-		// turn right
-		if d.Input[pos.y+dir.y][pos.x+dir.x] == '#' {
-			dir.TurnRight()
-		}
-		pos.y += dir.y
-		pos.x += dir.x
-
-		if d.ShowSimulation {
-			for _, line := range d.Input {
-				println(line)
+	for row, line := range d.Input {
+		for col, char := range line {
+			// already a block or original starting position here
+			if char == '#' || char == '^' {
+				continue
 			}
-			time.Sleep(500 * time.Millisecond)
+
+			// place a blockade, run simulation
+			d.Input[row] = d.Input[row][:col] + "#" + d.Input[row][col+1:]
+			if d.doesFindLoop(pos, dir) {
+				sum++
+			}
+			d.Input[row] = d.Input[row][:col] + "." + d.Input[row][col+1:]
 		}
 	}
 
@@ -118,11 +104,48 @@ func (d Day6) Part2() string {
 func (d *Day6) getInitialPosiiton() Pos {
 	pos := Pos{}
 	for row, line := range d.Input {
-		if i := strings.Index(line, "^"); i != -1 {
-			pos.x = i
+		if col := strings.Index(line, "^"); col != -1 {
+			pos.x = col
 			pos.y = row
 			break
 		}
 	}
 	return pos
+}
+
+func (d *Day6) movePlayer(pos *Pos, dir *Pos) {
+	// normal movement procedure
+	if d.Input[pos.y+dir.y][pos.x+dir.x] == '#' {
+		dir.TurnRight()
+		return
+	}
+
+	pos.y += dir.y
+	pos.x += dir.x
+}
+
+func (d *Day6) doesFindLoop(pos Pos, dir Pos) bool {
+	width, height := len(d.Input[0]), len(d.Input)
+	visitedPosDirs := make(map[string][]string)
+
+	for {
+		// No loop can be created since we are leaving the bounds of the map
+		if pos.x+dir.x < 0 || pos.x+dir.x >= width || pos.y+dir.y < 0 || pos.y+dir.y >= height {
+			break
+		}
+
+		// check if we've been here before at this direction
+		dirs, ok := visitedPosDirs[pos.String()]
+		if ok {
+			if slices.Contains(dirs, dir.String()) {
+				return true
+			}
+		}
+
+		visitedPosDirs[pos.String()] = append(visitedPosDirs[pos.String()], dir.String())
+
+		d.movePlayer(&pos, &dir)
+	}
+
+	return false
 }
