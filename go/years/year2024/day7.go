@@ -29,9 +29,8 @@ func (d Day7) Part1() string {
 
 		// iterate through 2^(n-1) times
 		for i := range int(math.Pow(2, float64(len(nums))-1)) {
-			result := evaluateAtIteration(nums, i, 2)
-			if result == expectedResult {
-				answer += expectedResult
+			if r, ok := evaluateAtIteration(nums, i, 2, expectedResult); ok {
+				answer += r
 				break
 			}
 		}
@@ -40,8 +39,12 @@ func (d Day7) Part1() string {
 	return strconv.Itoa(answer)
 }
 
-// avg ~2.9s over 10 iterations. too long to test more.
 func (d Day7) Part2() string {
+	return d.part2_dfs()
+}
+
+// avg ~2.8s over 10 iterations. too long to test more.
+func (d *Day7) part2_iterativePermutationsOfOperators() string {
 	answer := 0
 
 	for _, line := range d.Input {
@@ -51,15 +54,50 @@ func (d Day7) Part2() string {
 		nums := parseNumbers(parts[1])
 
 		for i := range int(math.Pow(3, float64(len(nums))-1)) {
-			result := evaluateAtIteration(nums, i, 3)
-			if result == expectedResult {
-				answer += expectedResult
+			if r, ok := evaluateAtIteration(nums, i, 3, expectedResult); ok {
+				answer += r
 				break
 			}
 		}
 	}
 
 	return strconv.Itoa(answer)
+}
+
+// avg ~598ms over 100 iterations
+func (d *Day7) part2_dfs() string {
+	answer := 0
+
+	for _, line := range d.Input {
+		parts := strings.Split(line, ":")
+		expectedResult, err := strconv.Atoi(parts[0])
+		utils.PanicErr(err)
+		nums := parseNumbers(parts[1])
+
+		if isPossible(nums, expectedResult, 0) {
+			answer += expectedResult
+		}
+	}
+
+	return strconv.Itoa(answer)
+}
+
+func isPossible(nums []int, target int, current int) bool {
+	if len(nums) == 0 {
+		return current == target
+	}
+
+	num := nums[0]
+	nextNums := nums[1:]
+
+	return isPossible(nextNums, target, current+num) ||
+		isPossible(nextNums, target, current*num) ||
+		isPossible(nextNums, target, concat(current, num))
+}
+
+func concat(left int, right int) int {
+	n, _ := strconv.Atoi(strconv.Itoa(left) + strconv.Itoa(right))
+	return n
 }
 
 // given a number, generates a string of runes that represent that number
@@ -92,7 +130,7 @@ func generateNumberAtBase(num int, length int, base int) []rune {
 
 // given a list of nums, evalutes the expression based on the given iteration.
 // The given iteration determines what order of operations to use.
-func evaluateAtIteration(nums []int, iter int, base int) int {
+func evaluateAtIteration(nums []int, iter int, base int, expectedResult int) (int, bool) {
 	result := nums[0]
 	ops := generateNumberAtBase(iter, len(nums)-1, base)
 	for j, op := range ops {
@@ -112,8 +150,11 @@ func evaluateAtIteration(nums []int, iter int, base int) int {
 		default:
 			break
 		}
+		if result > expectedResult {
+			return 0, false
+		}
 	}
-	return result
+	return result, result == expectedResult
 }
 
 // given a string, parses out all numbers and returns them as a slice of ints.
