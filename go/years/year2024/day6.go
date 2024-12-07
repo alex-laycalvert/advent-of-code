@@ -1,7 +1,6 @@
 package year2024
 
 import (
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -18,28 +17,51 @@ type Day6 struct {
 type Pos struct {
 	x int
 	y int
+	d rune
 }
 
-type PosDirPair struct {
-	pos string
-	dir string
+var turnRightMap = map[rune]rune{
+	'^': '>',
+	'>': 'v',
+	'v': '<',
+	'<': '^',
 }
 
-func (p Pos) String() string {
-	return strconv.Itoa(p.x) + "," + strconv.Itoa(p.y)
+func (p Pos) String(withDir bool) string {
+	key := strconv.Itoa(p.x) + "," + strconv.Itoa(p.y)
+	if withDir {
+		key += string(p.d)
+	}
+	return key
 }
 
-func (p *Pos) TurnRight() {
-	p.x, p.y = -p.y, p.x
+func (p *Pos) getDirOffset() (x int, y int) {
+	switch p.d {
+	case '^':
+		return 0, -1
+	case 'v':
+		return 0, 1
+	case '>':
+		return 1, 0
+	case '<':
+		return -1, 0
+	}
+	return 0, 0
+}
+
+func (p *Pos) NextPos() Pos {
+	x, y := p.getDirOffset()
+	return Pos{
+		x: p.x + x,
+		y: p.y + y,
+		d: p.d,
+	}
 }
 
 // avg ~0.66ms per iter over 10k iters
 func (d Day6) Part1() string {
 	pos := d.getInitialPosiiton()
-	dir := Pos{0, -1}
-
-	path := d.walk(pos, dir)
-
+	path, _ := d.walk(pos, false)
 	return strconv.Itoa(len(path))
 }
 
@@ -47,12 +69,11 @@ func (d Day6) Part2() string {
 	return d.part2_bruteForce()
 }
 
-// avg ~4.3s
+// avg ~2.4s
 func (d *Day6) part2_bruteForce() string {
 	// determine initial position
 	pos := d.getInitialPosiiton()
-	dir := Pos{0, -1}
-	path := d.walk(pos, dir)
+	path, _ := d.walk(pos, false)
 
 	sum := 0
 	// we only need to iterate over the covered path, not every single
@@ -68,7 +89,7 @@ func (d *Day6) part2_bruteForce() string {
 
 		// place a blockade, run simulation
 		d.Input[row] = d.Input[row][:col] + "#" + d.Input[row][col+1:]
-		if d.doesFindLoop(pos, dir) {
+		if _, foundLoop := d.walk(pos, true); foundLoop {
 			sum++
 		}
 		d.Input[row] = d.Input[row][:col] + "." + d.Input[row][col+1:]
@@ -83,65 +104,47 @@ func (d *Day6) getInitialPosiiton() Pos {
 		if col := strings.Index(line, "^"); col != -1 {
 			pos.x = col
 			pos.y = row
+			pos.d = '^'
 			break
 		}
 	}
 	return pos
 }
 
-func (d *Day6) move(pos *Pos, dir *Pos) {
+func (d *Day6) move(pos *Pos) {
+	nextPos := pos.NextPos()
+
 	// normal movement procedure
-	if d.Input[pos.y+dir.y][pos.x+dir.x] == '#' {
-		dir.TurnRight()
+	if d.Input[nextPos.y][nextPos.x] == '#' {
+		pos.d = turnRightMap[pos.d]
 		return
 	}
 
-	pos.y += dir.y
-	pos.x += dir.x
+	pos.y = nextPos.y
+	pos.x = nextPos.x
 }
 
-func (d *Day6) doesFindLoop(pos Pos, dir Pos) bool {
-	width, height := len(d.Input[0]), len(d.Input)
-	visitedPosDirs := make(map[string][]string)
-
-	for {
-		// No loop can be created since we are leaving the bounds of the map
-		if pos.x+dir.x < 0 || pos.x+dir.x >= width || pos.y+dir.y < 0 || pos.y+dir.y >= height {
-			break
-		}
-
-		// check if we've been here before at this direction
-		dirs, ok := visitedPosDirs[pos.String()]
-		if ok {
-			if slices.Contains(dirs, dir.String()) {
-				return true
-			}
-		}
-
-		visitedPosDirs[pos.String()] = append(visitedPosDirs[pos.String()], dir.String())
-
-		d.move(&pos, &dir)
-	}
-
-	return false
-}
-
-func (d *Day6) walk(pos Pos, dir Pos) []Pos {
+func (d *Day6) walk(pos Pos, checkForLoop bool) (path []Pos, foundLoop bool) {
 	width, height := len(d.Input[0]), len(d.Input)
 	visited := map[string]bool{}
-	path := []Pos{}
+	path = []Pos{}
+	foundLoop = false
 
 	for pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height {
-		if !visited[pos.String()] {
-			visited[pos.String()] = true
+		key := pos.String(checkForLoop)
+		if visited[key] {
+			if checkForLoop {
+				return path, true
+			}
+		} else {
+			visited[key] = true
 			path = append(path, pos)
 		}
-
-		if pos.x+dir.x < 0 || pos.x+dir.x >= width || pos.y+dir.y < 0 || pos.y+dir.y >= height {
+		nextPos := pos.NextPos()
+		if nextPos.x < 0 || nextPos.x >= width || nextPos.y < 0 || nextPos.y >= height {
 			break
 		}
-
-		d.move(&pos, &dir)
+		d.move(&pos)
 	}
-	return path
+	return path, foundLoop
 }
