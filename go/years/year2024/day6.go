@@ -44,12 +44,19 @@ func (d Day6) Part1() string {
 }
 
 func (d Day6) Part2() string {
+	return d.part2_bruteForce()
+}
+
+// avg ~4.3s
+func (d *Day6) part2_bruteForce() string {
 	// determine initial position
 	pos := d.getInitialPosiiton()
 	dir := Pos{0, -1}
 	path := d.walk(pos, dir)
 
 	sum := 0
+	// we only need to iterate over the covered path, not every single
+	// position in the grid
 	for _, blockPos := range path {
 		row := blockPos.y
 		col := blockPos.x
