@@ -2,14 +2,13 @@ package year2024
 
 import (
 	"strconv"
-	"strings"
 )
 
 // ANSWERS:
 //
 // Part 1: 4758
 //
-// Part 2:
+// Part 2: 1670
 type Day6 struct {
 	Input []string
 }
@@ -27,16 +26,162 @@ var turnRightMap = map[rune]rune{
 	'<': '^',
 }
 
-func (p Pos) String(withDir bool) string {
+func (p Pos) String(withDirection bool) string {
 	key := strconv.Itoa(p.x) + "," + strconv.Itoa(p.y)
-	if withDir {
+	if withDirection {
 		key += string(p.d)
 	}
 	return key
 }
 
-func (p *Pos) getDirOffset() (x int, y int) {
-	switch p.d {
+func (d Day6) Part1() string {
+	return d.part1_bruteForceStructured()
+}
+
+// avg ~0.99ms per iter over 10k iters
+func (d *Day6) part1_bruteForceStructured() string {
+	game := NewGame(d.Input)
+	path, _ := game.Walk(false)
+	return strconv.Itoa(len(path))
+}
+
+func (d Day6) Part2() string {
+	return d.part2_bruteForceStructured()
+}
+
+// avg ~2.6s
+func (d *Day6) part2_bruteForceStructured() string {
+	game := NewGame(d.Input)
+	path, _ := game.Walk(false)
+
+	sum := 0
+	// we only need to iterate over the covered path, not every single
+	// position in the grid
+	for _, blockPos := range path {
+		if !game.SetObstacle(blockPos.x, blockPos.y) {
+			continue
+		}
+		if _, foundLoop := game.Walk(true); foundLoop {
+			sum++
+		}
+		game.RemoveObstacle(blockPos.x, blockPos.y)
+		game.Reset()
+	}
+
+	return strconv.Itoa(sum)
+}
+
+type Node struct {
+	IsObstacle bool
+}
+
+type Game struct {
+	nodeMap  [][]Node
+	width    int
+	height   int
+	pos      Pos
+	startPos Pos
+}
+
+func NewGame(input []string) *Game {
+	nodeMap := make([][]Node, len(input))
+
+	startingPos := Pos{}
+	for i, line := range input {
+		nodeMap[i] = make([]Node, len(line))
+		for j, char := range line {
+			if char == '#' {
+				nodeMap[i][j].IsObstacle = true
+				continue
+			}
+
+			if char == '^' {
+				startingPos = Pos{j, i, char}
+				continue
+			}
+		}
+	}
+
+	width, height := len(input[0]), len(input)
+
+	return &Game{nodeMap, width, height, startingPos, startingPos}
+}
+
+func (g *Game) Walk(checkForLoop bool) (path []Pos, foundLoop bool) {
+	visited := map[string]bool{}
+	path = []Pos{}
+	foundLoop = false
+
+	for {
+		_, ok := visited[g.pos.String(checkForLoop)]
+		if ok && checkForLoop {
+			foundLoop = true
+			break
+		}
+
+		if !ok {
+			path = append(path, g.pos)
+			visited[g.pos.String(checkForLoop)] = true
+		}
+
+		if g.pos.x < 0 || g.pos.x >= g.width || g.pos.y < 0 || g.pos.y >= g.height {
+			break
+		}
+
+		x, y := g.getDirectionOffsets()
+
+		if g.pos.x+x < 0 || g.pos.x+x >= g.width || g.pos.y+y < 0 || g.pos.y+y >= g.height {
+			break
+		}
+
+		if g.nodeMap[g.pos.y+y][g.pos.x+x].IsObstacle {
+			g.pos.d = turnRightMap[g.pos.d]
+		} else {
+			g.pos.x += x
+			g.pos.y += y
+		}
+	}
+
+	return path, foundLoop
+}
+
+func (g *Game) SetObstacle(x int, y int) bool {
+	if x == g.startPos.x && y == g.startPos.y {
+		return false
+	}
+
+	if x < 0 || x >= g.width || y < 0 || y >= g.height {
+		return false
+	}
+
+	if g.nodeMap[y][x].IsObstacle {
+		return false
+	}
+
+	g.nodeMap[y][x].IsObstacle = true
+	return true
+}
+
+func (g *Game) RemoveObstacle(x int, y int) {
+	if x == g.startPos.x && y == g.startPos.y {
+		return
+	}
+
+	if x < 0 || x >= g.width || y < 0 || y >= g.height {
+		return
+	}
+
+	g.nodeMap[y][x].IsObstacle = false
+}
+
+func (g *Game) Reset() {
+	g.pos.x = g.startPos.x
+	g.pos.y = g.startPos.y
+	g.pos.d = g.startPos.d
+}
+
+func (g *Game) getDirectionOffsets() (x int, y int) {
+	switch g.pos.d {
 	case '^':
 		return 0, -1
 	case 'v':
@@ -47,104 +192,4 @@ func (p *Pos) getDirOffset() (x int, y int) {
 		return -1, 0
 	}
 	return 0, 0
-}
-
-func (p *Pos) NextPos() Pos {
-	x, y := p.getDirOffset()
-	return Pos{
-		x: p.x + x,
-		y: p.y + y,
-		d: p.d,
-	}
-}
-
-// avg ~0.66ms per iter over 10k iters
-func (d Day6) Part1() string {
-	pos := d.getInitialPosiiton()
-	path, _ := d.walk(pos, false)
-	return strconv.Itoa(len(path))
-}
-
-func (d Day6) Part2() string {
-	return d.part2_bruteForce()
-}
-
-// avg ~2.4s
-func (d *Day6) part2_bruteForce() string {
-	// determine initial position
-	pos := d.getInitialPosiiton()
-	path, _ := d.walk(pos, false)
-
-	sum := 0
-	// we only need to iterate over the covered path, not every single
-	// position in the grid
-	for _, blockPos := range path {
-		row := blockPos.y
-		col := blockPos.x
-		char := d.Input[row][col]
-		// already a block or original starting position here
-		if char == '#' || char == '^' {
-			continue
-		}
-
-		// place a blockade, run simulation
-		d.Input[row] = d.Input[row][:col] + "#" + d.Input[row][col+1:]
-		if _, foundLoop := d.walk(pos, true); foundLoop {
-			sum++
-		}
-		d.Input[row] = d.Input[row][:col] + "." + d.Input[row][col+1:]
-	}
-
-	return strconv.Itoa(sum)
-}
-
-func (d *Day6) getInitialPosiiton() Pos {
-	pos := Pos{}
-	for row, line := range d.Input {
-		if col := strings.Index(line, "^"); col != -1 {
-			pos.x = col
-			pos.y = row
-			pos.d = '^'
-			break
-		}
-	}
-	return pos
-}
-
-func (d *Day6) move(pos *Pos) {
-	nextPos := pos.NextPos()
-
-	// normal movement procedure
-	if d.Input[nextPos.y][nextPos.x] == '#' {
-		pos.d = turnRightMap[pos.d]
-		return
-	}
-
-	pos.y = nextPos.y
-	pos.x = nextPos.x
-}
-
-func (d *Day6) walk(pos Pos, checkForLoop bool) (path []Pos, foundLoop bool) {
-	width, height := len(d.Input[0]), len(d.Input)
-	visited := map[string]bool{}
-	path = []Pos{}
-	foundLoop = false
-
-	for pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height {
-		key := pos.String(checkForLoop)
-		if visited[key] {
-			if checkForLoop {
-				return path, true
-			}
-		} else {
-			visited[key] = true
-			path = append(path, pos)
-		}
-		nextPos := pos.NextPos()
-		if nextPos.x < 0 || nextPos.x >= width || nextPos.y < 0 || nextPos.y >= height {
-			break
-		}
-		d.move(&pos)
-	}
-	return path, foundLoop
 }
