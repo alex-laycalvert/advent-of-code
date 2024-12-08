@@ -3,6 +3,7 @@ package utils
 import (
 	"bufio"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -70,4 +71,22 @@ func TimeFunc(fn func() string, iterations int) (string, float64) {
 	}
 
 	return ans, float64(sum) / float64(iterations) / 1_000_000
+}
+
+type Pos struct {
+	X  int
+	Y  int
+	Ch rune
+}
+
+func NewPos(x, y int, ch rune) Pos {
+	return Pos{x, y, ch}
+}
+
+func (p Pos) String(withChar bool) string {
+	key := strconv.Itoa(p.X) + "," + strconv.Itoa(p.Y)
+	if withChar {
+		key += string(p.Ch)
+	}
+	return key
 }

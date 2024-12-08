@@ -2,6 +2,8 @@ package year2024
 
 import (
 	"strconv"
+
+	"github.com/alex-laycalvert/advent-of-code/utils"
 )
 
 // ANSWERS:
@@ -13,25 +15,11 @@ type Day6 struct {
 	Input []string
 }
 
-type Pos struct {
-	x int
-	y int
-	d rune
-}
-
 var turnRightMap = map[rune]rune{
 	'^': '>',
 	'>': 'v',
 	'v': '<',
 	'<': '^',
-}
-
-func (p Pos) String(withDirection bool) string {
-	key := strconv.Itoa(p.x) + "," + strconv.Itoa(p.y)
-	if withDirection {
-		key += string(p.d)
-	}
-	return key
 }
 
 func (d Day6) Part1() string {
@@ -58,13 +46,13 @@ func (d *Day6) part2_bruteForceStructured() string {
 	// we only need to iterate over the covered path, not every single
 	// position in the grid
 	for _, blockPos := range path {
-		if !game.SetObstacle(blockPos.x, blockPos.y) {
+		if !game.SetObstacle(blockPos.X, blockPos.Y) {
 			continue
 		}
 		if _, foundLoop := game.Walk(true); foundLoop {
 			sum++
 		}
-		game.RemoveObstacle(blockPos.x, blockPos.y)
+		game.RemoveObstacle(blockPos.X, blockPos.Y)
 		game.Reset()
 	}
 
@@ -79,14 +67,14 @@ type Game struct {
 	nodeMap  [][]Node
 	width    int
 	height   int
-	pos      Pos
-	startPos Pos
+	pos      utils.Pos
+	startPos utils.Pos
 }
 
 func NewGame(input []string) *Game {
 	nodeMap := make([][]Node, len(input))
 
-	startingPos := Pos{}
+	startingPos := utils.Pos{}
 	for i, line := range input {
 		nodeMap[i] = make([]Node, len(line))
 		for j, char := range line {
@@ -96,7 +84,7 @@ func NewGame(input []string) *Game {
 			}
 
 			if char == '^' {
-				startingPos = Pos{j, i, char}
+				startingPos = utils.Pos{X: j, Y: i, Ch: char}
 				continue
 			}
 		}
@@ -107,13 +95,14 @@ func NewGame(input []string) *Game {
 	return &Game{nodeMap, width, height, startingPos, startingPos}
 }
 
-func (g *Game) Walk(checkForLoop bool) (path []Pos, foundLoop bool) {
+func (g *Game) Walk(checkForLoop bool) (path []utils.Pos, foundLoop bool) {
 	visited := map[string]bool{}
-	path = []Pos{}
+	path = []utils.Pos{}
 	foundLoop = false
 
-	for {
-		_, ok := visited[g.pos.String(checkForLoop)]
+	for g.pos.X >= 0 && g.pos.X < g.width && g.pos.Y >= 0 && g.pos.Y < g.height {
+		key := g.pos.String(checkForLoop)
+		_, ok := visited[key]
 		if ok && checkForLoop {
 			foundLoop = true
 			break
@@ -121,24 +110,19 @@ func (g *Game) Walk(checkForLoop bool) (path []Pos, foundLoop bool) {
 
 		if !ok {
 			path = append(path, g.pos)
-			visited[g.pos.String(checkForLoop)] = true
+			visited[key] = true
 		}
 
-		if g.pos.x < 0 || g.pos.x >= g.width || g.pos.y < 0 || g.pos.y >= g.height {
+		dx, dy := g.getDirectionOffsets()
+		if g.pos.X+dx < 0 || g.pos.X+dx >= g.width || g.pos.Y+dy < 0 || g.pos.Y+dy >= g.height {
 			break
 		}
 
-		x, y := g.getDirectionOffsets()
-
-		if g.pos.x+x < 0 || g.pos.x+x >= g.width || g.pos.y+y < 0 || g.pos.y+y >= g.height {
-			break
-		}
-
-		if g.nodeMap[g.pos.y+y][g.pos.x+x].IsObstacle {
-			g.pos.d = turnRightMap[g.pos.d]
+		if g.nodeMap[g.pos.Y+dy][g.pos.X+dx].IsObstacle {
+			g.pos.Ch = turnRightMap[g.pos.Ch]
 		} else {
-			g.pos.x += x
-			g.pos.y += y
+			g.pos.X += dx
+			g.pos.Y += dy
 		}
 	}
 
@@ -146,7 +130,7 @@ func (g *Game) Walk(checkForLoop bool) (path []Pos, foundLoop bool) {
 }
 
 func (g *Game) SetObstacle(x int, y int) bool {
-	if x == g.startPos.x && y == g.startPos.y {
+	if x == g.startPos.X && y == g.startPos.Y {
 		return false
 	}
 
@@ -163,7 +147,7 @@ func (g *Game) SetObstacle(x int, y int) bool {
 }
 
 func (g *Game) RemoveObstacle(x int, y int) {
-	if x == g.startPos.x && y == g.startPos.y {
+	if x == g.startPos.X && y == g.startPos.Y {
 		return
 	}
 
@@ -175,13 +159,13 @@ func (g *Game) RemoveObstacle(x int, y int) {
 }
 
 func (g *Game) Reset() {
-	g.pos.x = g.startPos.x
-	g.pos.y = g.startPos.y
-	g.pos.d = g.startPos.d
+	g.pos.X = g.startPos.X
+	g.pos.Y = g.startPos.Y
+	g.pos.Ch = g.startPos.Ch
 }
 
 func (g *Game) getDirectionOffsets() (x int, y int) {
-	switch g.pos.d {
+	switch g.pos.Ch {
 	case '^':
 		return 0, -1
 	case 'v':
