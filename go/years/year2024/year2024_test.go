@@ -223,3 +223,21 @@ func TestDay8(t *testing.T) {
 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
 	}
 }
+
+func TestDay9(t *testing.T) {
+	day9 := year2024.Day9{Input: []string{
+		"2333133121414131402",
+	}}
+
+	expectedPart1 := "1928"
+	part1 := day9.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
+
+	expectedPart2 := "2858"
+	part2 := day9.Part2()
+	if part2 != expectedPart2 {
+		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
+	}
+}
