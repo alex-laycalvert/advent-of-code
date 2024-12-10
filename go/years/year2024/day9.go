@@ -15,60 +15,25 @@ type Day9 struct {
 	Input []string
 }
 
+type StorageSpace struct {
+	id    int
+	index int
+	size  int
+}
+
 func (d Day9) Part1() string {
-	answer := 0
 	diskMap := d.Input[0]
-
-	freeSpace := make([]int, 0)
-	files := make([]int, 0)
-	storage := make([]int, 0)
-	currentStorageIndex := 0
-	for i, ch := range diskMap {
-		numBlocks, err := strconv.Atoi(string(ch))
-		utils.PanicErr(err)
-		// file
-		if i%2 == 0 {
-			for range numBlocks {
-				storage = append(storage, i/2)
-				files = append(files, currentStorageIndex)
-				currentStorageIndex++
-			}
-			continue
-		}
-
-		// free space
-		for range numBlocks {
-			storage = append(storage, -1)
-			freeSpace = append(freeSpace, currentStorageIndex)
-			currentStorageIndex++
-		}
-	}
-
-	freeSpaceIndex := 0
-	filesIndex := len(files) - 1
-	for freeSpaceIndex < len(freeSpace) && filesIndex >= 0 && freeSpace[freeSpaceIndex] < files[filesIndex] {
-		storage[freeSpace[freeSpaceIndex]] = storage[files[filesIndex]]
-		freeSpaceIndex++
-		filesIndex--
-	}
-
-	for i := 0; i < len(files); i++ {
-		answer += i * storage[i]
-	}
-
-	return strconv.Itoa(answer)
+	checksum := consolidateStorage(diskMap, true)
+	return strconv.Itoa(checksum)
 }
 
 func (d Day9) Part2() string {
-	answer := 0
 	diskMap := d.Input[0]
+	checksum := consolidateStorage(diskMap, false)
+	return strconv.Itoa(checksum)
+}
 
-	type StorageSpace struct {
-		id    int
-		index int
-		size  int
-	}
-
+func consolidateStorage(diskMap string, allowFragmentation bool) int {
 	freeSpace := make([]StorageSpace, 0)
 	files := make([]StorageSpace, 0)
 	storage := make([]int, 0)
@@ -78,54 +43,72 @@ func (d Day9) Part2() string {
 		numBlocks, err := strconv.Atoi(string(ch))
 		utils.PanicErr(err)
 
-		storageSpace := StorageSpace{index: currentStorageIndex, size: numBlocks}
+		storageSpace := StorageSpace{-1, currentStorageIndex, numBlocks}
 		if i%2 == 0 {
 			storageSpace.id = i / 2
 			files = append(files, storageSpace)
 		} else {
-			storageSpace.id = -1
 			freeSpace = append(freeSpace, storageSpace)
 		}
 
-		for j := currentStorageIndex; j < currentStorageIndex+numBlocks; j++ {
-			storage = append(storage, storageSpace.id)
-		}
+		storage = fillRange(storage, storageSpace.id, currentStorageIndex, currentStorageIndex+numBlocks)
 		currentStorageIndex += numBlocks
 	}
 
-	for i := len(files) - 1; i >= 0; i-- {
-		fileSpace := files[i]
+	// if allowing fragmentation, we only continue after the file once the entire file has been re-allocated.
+	// if not allowing fragmentation, we would continue if we couldn't find any available space.
+	for i := len(files) - 1; i >= 0; {
 		freeIndex := -1
 		for j, space := range freeSpace {
-			if space.size < fileSpace.size {
+			if space.size <= 0 || (!allowFragmentation && space.size < files[i].size) {
 				continue
 			}
 			freeIndex = j
 			break
 		}
 
-		if freeIndex == -1 {
+		if freeIndex == -1 || freeSpace[freeIndex].index > files[i].index {
+			i--
 			continue
 		}
 
-		if freeSpace[freeIndex].index > fileSpace.index {
-			continue
+		count := 0
+		for j := range freeSpace[freeIndex].size {
+			if j >= files[i].size {
+				break
+			}
+			storage[freeSpace[freeIndex].index+j] = files[i].id
+			storage[files[i].index+files[i].size-1-j] = -1
+			count++
 		}
+		files[i].size -= count
+		freeSpace[freeIndex].size -= count
+		freeSpace[freeIndex].index += count
 
-		for j := range fileSpace.size {
-			storage[freeSpace[freeIndex].index+j] = fileSpace.id
-			storage[fileSpace.index+j] = -1
+		if files[i].size <= 0 {
+			i--
 		}
-		freeSpace[freeIndex].size -= fileSpace.size
-		freeSpace[freeIndex].index += fileSpace.size
 	}
 
+	checksum := 0
 	for i, num := range storage {
 		if num == -1 {
 			continue
 		}
-		answer += i * num
+		checksum += i * num
 	}
+	return checksum
+}
 
-	return strconv.Itoa(answer)
+func fillRange[T any](slice []T, value T, start int, end int) []T {
+	length := len(slice)
+	for i := start; i < end; i++ {
+		if i >= length {
+			slice = append(slice, value)
+			length++
+			continue
+		}
+		slice[i] = value
+	}
+	return slice
 }
