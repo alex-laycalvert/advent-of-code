@@ -241,3 +241,28 @@ func TestDay9(t *testing.T) {
 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
 	}
 }
+
+func TestDay10(t *testing.T) {
+	day10 := year2024.Day10{Input: []string{
+		"89010123",
+		"78121874",
+		"87430965",
+		"96549874",
+		"45678903",
+		"32019012",
+		"01329801",
+		"10456732",
+	}}
+
+	expectedPart1 := "36"
+	part1 := day10.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
+
+	expectedPart2 := "81"
+	part2 := day10.Part2()
+	if part2 != expectedPart2 {
+		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
+	}
+}
