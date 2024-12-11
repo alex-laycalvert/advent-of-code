@@ -28,7 +28,7 @@ func (d Day6) Part1() string {
 
 // avg ~0.99ms per iter over 10k iters
 func (d *Day6) part1_bruteForceStructured() string {
-	game := NewGame(d.Input)
+	game := NewGame_day6(d.Input)
 	path, _ := game.Walk(false)
 	return strconv.Itoa(len(path))
 }
@@ -39,7 +39,7 @@ func (d Day6) Part2() string {
 
 // avg ~2.6s
 func (d *Day6) part2_bruteForceStructured() string {
-	game := NewGame(d.Input)
+	game := NewGame_day6(d.Input)
 	path, _ := game.Walk(false)
 
 	sum := 0
@@ -59,24 +59,24 @@ func (d *Day6) part2_bruteForceStructured() string {
 	return strconv.Itoa(sum)
 }
 
-type Node struct {
+type Node_day6 struct {
 	IsObstacle bool
 }
 
-type Game struct {
-	nodeMap  [][]Node
+type Game_day6 struct {
+	nodeMap  [][]Node_day6
 	width    int
 	height   int
 	pos      utils.Pos
 	startPos utils.Pos
 }
 
-func NewGame(input []string) *Game {
-	nodeMap := make([][]Node, len(input))
+func NewGame_day6(input []string) *Game_day6 {
+	nodeMap := make([][]Node_day6, len(input))
 
 	startingPos := utils.Pos{}
 	for i, line := range input {
-		nodeMap[i] = make([]Node, len(line))
+		nodeMap[i] = make([]Node_day6, len(line))
 		for j, char := range line {
 			if char == '#' {
 				nodeMap[i][j].IsObstacle = true
@@ -92,10 +92,10 @@ func NewGame(input []string) *Game {
 
 	width, height := len(input[0]), len(input)
 
-	return &Game{nodeMap, width, height, startingPos, startingPos}
+	return &Game_day6{nodeMap, width, height, startingPos, startingPos}
 }
 
-func (g *Game) Walk(checkForLoop bool) (path []utils.Pos, foundLoop bool) {
+func (g *Game_day6) Walk(checkForLoop bool) (path []utils.Pos, foundLoop bool) {
 	visited := map[string]bool{}
 	path = []utils.Pos{}
 	foundLoop = false
@@ -129,7 +129,7 @@ func (g *Game) Walk(checkForLoop bool) (path []utils.Pos, foundLoop bool) {
 	return path, foundLoop
 }
 
-func (g *Game) SetObstacle(x int, y int) bool {
+func (g *Game_day6) SetObstacle(x int, y int) bool {
 	if x == g.startPos.X && y == g.startPos.Y {
 		return false
 	}
@@ -146,7 +146,7 @@ func (g *Game) SetObstacle(x int, y int) bool {
 	return true
 }
 
-func (g *Game) RemoveObstacle(x int, y int) {
+func (g *Game_day6) RemoveObstacle(x int, y int) {
 	if x == g.startPos.X && y == g.startPos.Y {
 		return
 	}
@@ -158,13 +158,13 @@ func (g *Game) RemoveObstacle(x int, y int) {
 	g.nodeMap[y][x].IsObstacle = false
 }
 
-func (g *Game) Reset() {
+func (g *Game_day6) Reset() {
 	g.pos.X = g.startPos.X
 	g.pos.Y = g.startPos.Y
 	g.pos.Ch = g.startPos.Ch
 }
 
-func (g *Game) getDirectionOffsets() (x int, y int) {
+func (g *Game_day6) getDirectionOffsets() (x int, y int) {
 	switch g.pos.Ch {
 	case '^':
 		return 0, -1
