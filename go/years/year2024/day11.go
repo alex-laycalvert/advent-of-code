@@ -11,17 +11,19 @@ import (
 //
 // Part 1: 217812
 //
-// Part 2: 259112729857522
+// Part 2: 259,112,729,857,522
 type Day11 struct {
 	Input []string
 }
 
+// avg ~0.5ms per iter over 10k iters
 func (d Day11) Part1() string {
 	input := parseDay11Input(d.Input[0])
 	size := blink(input, 25)
 	return strconv.Itoa(size)
 }
 
+// avg ~45-50ms per iter over 100 iters
 func (d Day11) Part2() string {
 	input := parseDay11Input(d.Input[0])
 	size := blink(input, 75)
