@@ -84,9 +84,13 @@ func NewPos(x, y int, ch rune) Pos {
 }
 
 func (p Pos) String(withChar bool) string {
-	key := strconv.Itoa(p.X) + "," + strconv.Itoa(p.Y)
+	key := PosToString(p.X, p.Y)
 	if withChar {
-		key += string(p.Ch)
+		key += "," + string(p.Ch)
 	}
 	return key
+}
+
+func PosToString(x int, y int) string {
+	return strconv.Itoa(x) + "," + strconv.Itoa(y)
 }

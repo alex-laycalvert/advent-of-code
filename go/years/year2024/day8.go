@@ -42,17 +42,17 @@ func (d Day8) Part1() string {
 			dx := ant2.X - ant1.X
 
 			if ant1.X-dx >= 0 && ant1.Y-dy >= 0 && ant1.X-dx < width && ant1.Y-dy < height {
-				if !antinodes[posToString(ant1.X-dx, ant1.Y-dy)] {
+				if !antinodes[utils.PosToString(ant1.X-dx, ant1.Y-dy)] {
 					answer++
 				}
-				antinodes[posToString(ant1.X-dx, ant1.Y-dy)] = true
+				antinodes[utils.PosToString(ant1.X-dx, ant1.Y-dy)] = true
 			}
 
 			if ant2.X+dx >= 0 && ant2.Y+dy >= 0 && ant2.X+dx < width && ant2.Y+dy < height {
-				if !antinodes[posToString(ant2.X+dx, ant2.Y+dy)] {
+				if !antinodes[utils.PosToString(ant2.X+dx, ant2.Y+dy)] {
 					answer++
 				}
-				antinodes[posToString(ant2.X+dx, ant2.Y+dy)] = true
+				antinodes[utils.PosToString(ant2.X+dx, ant2.Y+dy)] = true
 			}
 		}
 	}
@@ -89,7 +89,7 @@ func (d Day8) Part2() string {
 			currX := ant1.X
 			currY := ant1.Y
 			for currX >= 0 && currX < width && currY >= 0 && currY < height {
-				key := posToString(currX, currY)
+				key := utils.PosToString(currX, currY)
 				if !antinodes[key] {
 					answer++
 				}
@@ -101,7 +101,7 @@ func (d Day8) Part2() string {
 			currX = ant2.X
 			currY = ant2.Y
 			for currX >= 0 && currX < width && currY >= 0 && currY < height {
-				key := posToString(currX, currY)
+				key := utils.PosToString(currX, currY)
 				if !antinodes[key] {
 					answer++
 				}
@@ -113,8 +113,4 @@ func (d Day8) Part2() string {
 	}
 
 	return strconv.Itoa(answer)
-}
-
-func posToString(x int, y int) string {
-	return strconv.Itoa(x) + "," + strconv.Itoa(y)
 }

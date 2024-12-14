@@ -267,46 +267,6 @@ func TestDay10(t *testing.T) {
 	}
 }
 
-// 125 17
-
-//    v
-// 0: (125, 0) (17, 0)
-// 1: (253000, 0), (17, 0)
-// 2: (253, 0), (0, 2), (17, 0)
-// 3: (512072, 0), (0, 2), (17, 0)
-// 4: (512, 0) (72, 4), (0, 2), (17, 0)
-// 5: (1036288, 0) (72, 4), (0, 2), (17, 0)
-// 6: (2097446912, 0) (72, 4), (0, 2), (17, 0)
-
-//                      v
-// 0: (2097446912, 0) (72, 4), (0, 2), (17, 0)
-// 1: (2097446912, 0) (7, 4) (2, 5), (0, 2), (17, 0)
-// 2: (2097446912, 0) (14168, 4) (2, 5), (0, 2), (17, 0)
-
-//                                 v
-// 0: (2097446912, 0) (14168, 4) (2, 5), (0, 2), (17, 0)
-// 1: (2097446912, 0) (14168, 4) (4048, 5), (0, 2), (17, 0)
-
-//                                             v
-// 0: (2097446912, 0) (14168, 4) (4048, 5), (0, 2), (17, 0)
-// 1: (2097446912, 0) (14168, 4) (4048, 5), (1, 2), (17, 0)
-// 2: (2097446912, 0) (14168, 4) (4048, 5), (2024, 2), (17, 0)
-// 3: (2097446912, 0) (14168, 4) (4048, 5), (20, 2) (24, 5), (17, 0)
-// 4: (2097446912, 0) (14168, 4) (4048, 5), (2, 2) (0, 6) (24, 5), (17, 0)
-
-//                                                           v
-// 0: (2097446912, 0) (14168, 4) (4048, 5), (2, 2) (0, 6) (24, 5), (17, 0)
-// 1: (2097446912, 0) (14168, 4) (4048, 5), (2, 2) (0, 6) (2, 3) (4, 4), (17, 0)
-
-//                                                                          v
-// 0: (2097446912, 0) (14168, 4) (4048, 5), (2, 2) (0, 6) (40, 3) (48, 6) (4, 4), (17, 0)
-// 1: (2097446912, 0) (14168, 4) (4048, 5), (2, 2) (0, 6) (40, 3) (48, 6) (8096, 4), (17, 0)
-// 2: (2097446912, 0) (14168, 4) (4048, 5), (2, 2) (0, 6) (40, 3) (48, 6) (80, 4) (96, 6), (17, 0)
-
-//                                                                                           v
-// 0: (2097446912, 0) (14168, 4) (4048, 5), (2, 2) (0, 6) (40, 3) (48, 6) (80, 4) (96, 6), (17, 0)
-// 1: (2097446912, 0) (14168, 4) (4048, 5), (2, 2) (0, 6) (40, 3) (48, 6) (80, 4) (96, 6), (1, 0) (7, 1)
-
 func TestDay11(t *testing.T) {
 	day11 := year2024.Day11{Input: []string{
 		"125 17",
@@ -318,8 +278,67 @@ func TestDay11(t *testing.T) {
 		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
 	}
 
-	expectedPart2 := "81"
-	part2 := day11.Part2()
+	// expectedPart2 := ""
+	// part2 := day11.Part2()
+	// if part2 != expectedPart2 {
+	// 	t.Fatalf("Expected %s, got %s", expectedPart2, part2)
+	// }
+}
+
+func TestDay12(t *testing.T) {
+	day12 := year2024.Day12{Input: []string{
+		"RRRRIICCFF",
+		"RRRRIICCCF",
+		"VVRRRCCFFF",
+		"VVRCCCJFFF",
+		"VVVVCJJCFE",
+		"VVIVCCJJEE",
+		"VVIIICJJEE",
+		"MIIIIIJJEE",
+		"MIIISIJEEE",
+		"MMMISSJEEE",
+	}}
+
+	expectedPart1 := "1930"
+	part1 := day12.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
+
+	expectedPart2 := "1206"
+	part2 := day12.Part2()
+	if part2 != expectedPart2 {
+		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
+	}
+}
+
+func TestDay13(t *testing.T) {
+	day13 := year2024.Day13{Input: []string{
+		"Button A: X+94, Y+34",
+		"Button B: X+22, Y+67",
+		"Prize: X=8400, Y=5400",
+		"",
+		"Button A: X+26, Y+66",
+		"Button B: X+67, Y+21",
+		"Prize: X=12748, Y=12176",
+		"",
+		"Button A: X+17, Y+86",
+		"Button B: X+84, Y+37",
+		"Prize: X=7870, Y=6450",
+		"",
+		"Button A: X+69, Y+23",
+		"Button B: X+27, Y+71",
+		"Prize: X=18641, Y=10279",
+	}}
+
+	expectedPart1 := "480"
+	part1 := day13.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
+
+	expectedPart2 := "875318608908"
+	part2 := day13.Part2()
 	if part2 != expectedPart2 {
 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
 	}

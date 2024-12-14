@@ -61,12 +61,12 @@ func (d Day10) Part2() string {
 }
 
 func searchTrailsUnique(topographicMap [][]int, row int, col int, visited map[string]bool) int {
-	if visited[posToString(row, col)] {
+	if visited[utils.PosToString(row, col)] {
 		return 0
 	}
 	height := topographicMap[row][col]
 	if height == 9 {
-		visited[posToString(row, col)] = true
+		visited[utils.PosToString(row, col)] = true
 		return 1
 	}
 
@@ -88,7 +88,7 @@ func searchTrailsUnique(topographicMap [][]int, row int, col int, visited map[st
 		numTrails += searchTrailsUnique(topographicMap, row, col+1, visited)
 	}
 
-	visited[posToString(row, col)] = true
+	visited[utils.PosToString(row, col)] = true
 	return numTrails
 }
 
