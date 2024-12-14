@@ -94,3 +94,37 @@ func (p Pos) String(withChar bool) string {
 func PosToString(x int, y int) string {
 	return strconv.Itoa(x) + "," + strconv.Itoa(y)
 }
+
+// given a string, parses out all numbers and returns them as a slice of ints.
+func ParseNumbers(s string) []int {
+	numbers := []int{}
+
+	currentNum := ""
+	isNegative := false
+	for _, ch := range s {
+		if ch == '-' && !isNegative {
+			isNegative = true
+			currentNum = string(ch) + currentNum
+			continue
+		}
+
+		if ch >= '0' && ch <= '9' {
+			currentNum += string(ch)
+			continue
+		}
+
+		if currentNum != "" {
+			num, _ := strconv.Atoi(currentNum)
+			numbers = append(numbers, num)
+			currentNum = ""
+			isNegative = false
+		}
+	}
+
+	if currentNum != "" {
+		num, err := strconv.Atoi(currentNum)
+		PanicErr(err)
+		numbers = append(numbers, num)
+	}
+	return numbers
+}

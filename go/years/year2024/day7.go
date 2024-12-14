@@ -25,7 +25,7 @@ func (d Day7) Part1() string {
 		parts := strings.Split(line, ":")
 		expectedResult, err := strconv.Atoi(parts[0])
 		utils.PanicErr(err)
-		nums := parseNumbers(parts[1])
+		nums := utils.ParseNumbers(parts[1])
 
 		// iterate through 2^(n-1) times
 		for i := range int(math.Pow(2, float64(len(nums))-1)) {
@@ -51,7 +51,7 @@ func (d *Day7) part2_iterativePermutationsOfOperators() string {
 		parts := strings.Split(line, ":")
 		expectedResult, err := strconv.Atoi(parts[0])
 		utils.PanicErr(err)
-		nums := parseNumbers(parts[1])
+		nums := utils.ParseNumbers(parts[1])
 
 		for i := range int(math.Pow(3, float64(len(nums))-1)) {
 			if r, ok := evaluateAtIteration(nums, i, 3, expectedResult); ok {
@@ -72,7 +72,7 @@ func (d *Day7) part2_dfs() string {
 		parts := strings.Split(line, ":")
 		expectedResult, err := strconv.Atoi(parts[0])
 		utils.PanicErr(err)
-		nums := parseNumbers(parts[1])
+		nums := utils.ParseNumbers(parts[1])
 
 		if isPossible(nums, expectedResult, 0) {
 			answer += expectedResult
@@ -155,30 +155,4 @@ func evaluateAtIteration(nums []int, iter int, base int, expectedResult int) (in
 		}
 	}
 	return result, result == expectedResult
-}
-
-// given a string, parses out all numbers and returns them as a slice of ints.
-func parseNumbers(s string) []int {
-	numbers := []int{}
-
-	currentNum := ""
-	for _, ch := range s {
-		if ch >= '0' && ch <= '9' {
-			currentNum += string(ch)
-			continue
-		}
-
-		if currentNum != "" {
-			num, _ := strconv.Atoi(currentNum)
-			numbers = append(numbers, num)
-			currentNum = ""
-		}
-	}
-
-	if currentNum != "" {
-		num, err := strconv.Atoi(currentNum)
-		utils.PanicErr(err)
-		numbers = append(numbers, num)
-	}
-	return numbers
 }

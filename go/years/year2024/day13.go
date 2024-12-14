@@ -2,6 +2,8 @@ package year2024
 
 import (
 	"strconv"
+
+	"github.com/alex-laycalvert/advent-of-code/utils"
 )
 
 // ANSWERS:
@@ -56,9 +58,9 @@ type ClawMachineResult struct {
 }
 
 func NewClawMachine(input []string, prizeOffset int) ClawMachine {
-	a := parseNumbers(input[0])
-	b := parseNumbers(input[1])
-	prize := parseNumbers(input[2])
+	a := utils.ParseNumbers(input[0])
+	b := utils.ParseNumbers(input[1])
+	prize := utils.ParseNumbers(input[2])
 
 	return ClawMachine{
 		AX:     a[0],

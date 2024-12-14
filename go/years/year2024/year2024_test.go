@@ -343,3 +343,34 @@ func TestDay13(t *testing.T) {
 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
 	}
 }
+
+func TestDay14(t *testing.T) {
+	day14 := year2024.Day14{Input: []string{
+		"11,7",
+		// "p=2,4 v=2,-3", // Test Value
+		"p=0,4 v=3,-3",
+		"p=6,3 v=-1,-3",
+		"p=10,3 v=-1,2",
+		"p=2,0 v=2,-1",
+		"p=0,0 v=1,3",
+		"p=3,0 v=-2,-2",
+		"p=7,6 v=-1,-3",
+		"p=3,0 v=-1,-2",
+		"p=9,3 v=2,3",
+		"p=7,3 v=-1,2",
+		"p=2,4 v=2,-3",
+		"p=9,5 v=-3,-3",
+	}}
+
+	expectedPart1 := "12"
+	part1 := day14.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
+
+	expectedPart2 := "Not Implemented"
+	part2 := day14.Part2()
+	if part2 != expectedPart2 {
+		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
+	}
+}
