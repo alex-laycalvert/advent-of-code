@@ -401,29 +401,35 @@ func TestDay15(t *testing.T) {
 		"v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^",
 	}}
 
-	// day15 := year2024.Day15{Input: []string{
-	// 	"########",
-	// 	"#..O.O.#",
-	// 	"##@.O..#",
-	// 	"#...O..#",
-	// 	"#.#.O..#",
-	// 	"#...O..#",
-	// 	"#......#",
-	// 	"########",
-	// 	"",
-	// 	"<^^>>>vv<v>>v<<",
-	// }}
-
 	expectedPart1 := "10092"
 	part1 := day15.Part1()
 	if part1 != expectedPart1 {
 		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
 	}
 
-	// Part 2 doesn't apply to sample
-	// expectedPart2 := "Not Implemented"
-	// part2 := day15.Part2()
-	// if part2 != expectedPart2 {
-	// 	t.Fatalf("Expected %s, got %s", expectedPart2, part2)
-	// }
+	expectedPart2 := "9021"
+	part2 := day15.Part2()
+	if part2 != expectedPart2 {
+		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
+	}
+
+	day15 = year2024.Day15{Input: []string{
+		"#########",
+		"#...#...#",
+		"#..O.O..#",
+		"#..OOO..#",
+		"#...OO..#",
+		"#...O...#",
+		"#.......#",
+		"#...@...#",
+		"#########",
+		"",
+		"^",
+	}}
+
+	expectedPart2 = "Not implemented"
+	part2 = day15.Part2()
+	if part2 != expectedPart2 {
+		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
+	}
 }
