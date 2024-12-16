@@ -412,24 +412,4 @@ func TestDay15(t *testing.T) {
 	if part2 != expectedPart2 {
 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
 	}
-
-	day15 = year2024.Day15{Input: []string{
-		"#########",
-		"#...#...#",
-		"#..O.O..#",
-		"#..OOO..#",
-		"#...OO..#",
-		"#...O...#",
-		"#.......#",
-		"#...@...#",
-		"#########",
-		"",
-		"^",
-	}}
-
-	expectedPart2 = "Not implemented"
-	part2 = day15.Part2()
-	if part2 != expectedPart2 {
-		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
-	}
 }

@@ -1,12 +1,9 @@
 package year2024
 
 import (
-	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"strconv"
-
-	// "time"
 
 	"github.com/alex-laycalvert/advent-of-code/utils"
 )
@@ -15,7 +12,7 @@ import (
 //
 // Part 1: 1487337
 //
-// Part 2:
+// Part 2: 1521952
 type Day15 struct {
 	Input []string
 }
@@ -230,14 +227,205 @@ func (d Day15) Part1() string {
 }
 
 func (d Day15) Part2() string {
+	grid, moves, robot := NewGrid(d.Input)
+
+	// grid.Print(robot, os.Stdout)
+	for _, move := range moves {
+		// fmt.Fprintln(os.Stdout, string(move))
+		robot = grid.Move(robot, move)
+		// grid.Print(robot, os.Stdout)
+	}
+
+	answer := 0
+	for y := range grid.Height {
+		for x := range grid.Width {
+			if grid.Map[utils.PosToString(x, y)] == BOX_LEFT {
+				answer += 100*(y+1) + x + 2
+			}
+		}
+	}
+
+	return strconv.Itoa(answer)
+}
+
+type Grid struct {
+	Map    map[string]Point
+	Width  int
+	Height int
+}
+
+func (grid *Grid) Move(pos utils.Pos, move Move) utils.Pos {
+	if !grid.IsPossible(pos, move) {
+		return pos
+	}
+
+	currentKey := pos.String(false)
+	currentPt := grid.Map[currentKey]
+	switch move {
+	case UP:
+		nextKey := utils.PosToString(pos.X, pos.Y-1)
+		pt := grid.Map[nextKey]
+
+		if pt == BOX_LEFT {
+			grid.Move(utils.Pos{X: pos.X, Y: pos.Y - 1}, UP)
+			grid.Move(utils.Pos{X: pos.X + 1, Y: pos.Y - 1}, UP)
+		}
+
+		if pt == BOX_RIGHT {
+			grid.Move(utils.Pos{X: pos.X, Y: pos.Y - 1}, UP)
+			grid.Move(utils.Pos{X: pos.X - 1, Y: pos.Y - 1}, UP)
+		}
+
+		grid.Map[nextKey] = currentPt
+		grid.Map[currentKey] = EMPTY
+		return utils.Pos{X: pos.X, Y: pos.Y - 1}
+	case DOWN:
+		nextKey := utils.PosToString(pos.X, pos.Y+1)
+		pt := grid.Map[nextKey]
+
+		if pt == BOX_LEFT {
+			grid.Move(utils.Pos{X: pos.X, Y: pos.Y + 1}, DOWN)
+			grid.Move(utils.Pos{X: pos.X + 1, Y: pos.Y + 1}, DOWN)
+		}
+
+		if pt == BOX_RIGHT {
+			grid.Move(utils.Pos{X: pos.X, Y: pos.Y + 1}, DOWN)
+			grid.Move(utils.Pos{X: pos.X - 1, Y: pos.Y + 1}, DOWN)
+		}
+
+		grid.Map[nextKey] = currentPt
+		grid.Map[currentKey] = EMPTY
+		return utils.Pos{X: pos.X, Y: pos.Y + 1}
+	case LEFT:
+		nextKey := utils.PosToString(pos.X-1, pos.Y)
+		pt := grid.Map[nextKey]
+
+		if pt != EMPTY {
+			grid.Move(utils.Pos{X: pos.X - 1, Y: pos.Y}, LEFT)
+		}
+
+		grid.Map[nextKey] = currentPt
+		grid.Map[currentKey] = EMPTY
+		return utils.Pos{X: pos.X - 1, Y: pos.Y}
+	case RIGHT:
+		nextKey := utils.PosToString(pos.X+1, pos.Y)
+		pt := grid.Map[nextKey]
+
+		if pt != EMPTY {
+			grid.Move(utils.Pos{X: pos.X + 1, Y: pos.Y}, RIGHT)
+		}
+
+		grid.Map[nextKey] = currentPt
+		grid.Map[currentKey] = EMPTY
+		return utils.Pos{X: pos.X + 1, Y: pos.Y}
+	default:
+		return pos
+	}
+}
+
+func (grid Grid) IsPossible(pos utils.Pos, move Move) bool {
+	switch move {
+	case UP:
+		if pos.Y == 0 {
+			return false
+		}
+		nextKey := utils.PosToString(pos.X, pos.Y-1)
+		pt := grid.Map[nextKey]
+
+		if pt == EMPTY {
+			return true
+		}
+
+		if pt == WALL {
+			return false
+		}
+
+		if pt == BOX_LEFT {
+			return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y - 1}, UP) && grid.IsPossible(utils.Pos{X: pos.X + 1, Y: pos.Y - 1}, UP)
+		}
+
+		// BOX_RIGHT
+		return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y - 1}, UP) && grid.IsPossible(utils.Pos{X: pos.X - 1, Y: pos.Y - 1}, UP)
+	case DOWN:
+		if pos.Y == grid.Height-1 {
+			return false
+		}
+		nextKey := utils.PosToString(pos.X, pos.Y+1)
+		pt := grid.Map[nextKey]
+
+		if pt == EMPTY {
+			return true
+		}
+
+		if pt == WALL {
+			return false
+		}
+
+		if pt == BOX_LEFT {
+			return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y + 1}, DOWN) && grid.IsPossible(utils.Pos{X: pos.X + 1, Y: pos.Y + 1}, DOWN)
+		}
+
+		// BOX_RIGHT
+		return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y + 1}, DOWN) && grid.IsPossible(utils.Pos{X: pos.X - 1, Y: pos.Y + 1}, DOWN)
+	case LEFT:
+		if pos.X == 0 {
+			return false
+		}
+		nextKey := utils.PosToString(pos.X-1, pos.Y)
+		pt := grid.Map[nextKey]
+
+		if pt == EMPTY {
+			return true
+		}
+
+		if pt == WALL {
+			return false
+		}
+
+		return grid.IsPossible(utils.Pos{X: pos.X - 1, Y: pos.Y}, LEFT)
+	case RIGHT:
+		if pos.X == grid.Width-1 {
+			return false
+		}
+		nextKey := utils.PosToString(pos.X+1, pos.Y)
+		pt := grid.Map[nextKey]
+
+		if pt == EMPTY {
+			return true
+		}
+
+		if pt == WALL {
+			return false
+		}
+
+		return grid.IsPossible(utils.Pos{X: pos.X + 1, Y: pos.Y}, RIGHT)
+	default:
+		return false
+	}
+}
+
+func (grid *Grid) Print(robot utils.Pos, w io.Writer) {
+	for y := range grid.Height {
+		for x := range grid.Width {
+			if x == robot.X && y == robot.Y {
+				fmt.Fprint(w, "@")
+				continue
+			}
+			fmt.Fprint(w, string(grid.Map[utils.PosToString(x, y)]))
+		}
+		fmt.Fprintln(w)
+	}
+	fmt.Fprintln(w)
+}
+
+func NewGrid(input []string) (Grid, []Move, utils.Pos) {
 	grid := make(map[string]Point)
 	moves := make([]Move, 0)
 
 	var width, height int
 	var robot utils.Pos
 	parsingMoves := false
-
-	for row, line := range d.Input {
+	for row, line := range input {
 		if parsingMoves {
 			for _, c := range line {
 				moves = append(moves, Move(c))
@@ -286,307 +474,9 @@ func (d Day15) Part2() string {
 		}
 	}
 
-	printGrid(grid, width, height, robot, os.Stdout)
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		// for _, move := range moves {
-		var move Move
-		switch scanner.Text() {
-		case "w":
-			move = UP
-			break
-		case "s":
-			move = DOWN
-			break
-		case "a":
-			move = LEFT
-			break
-		case "d":
-			move = RIGHT
-			break
-		default:
-			break
-		}
-		fmt.Fprintln(os.Stdout, string(move))
-		switch move {
-		case UP:
-			if robot.Y == 0 {
-				continue
-			}
-
-			firstEmptyY := -1
-			left := robot.X
-			right := robot.X + 1
-			rowBounds := make([][]int, 0)
-			for y := robot.Y - 1; y >= 0; y-- {
-				// check for wall
-				foundWall := false
-				for i := left; i < right; i++ {
-					key := utils.PosToString(left, y)
-					if grid[key] == WALL {
-						foundWall = true
-						break
-					}
-				}
-				if foundWall {
-					break
-				}
-
-				newLeft := -1
-				newRight := right
-				for i := left; i < right; i++ {
-					key := utils.PosToString(i, y)
-					if i == left && grid[key] == BOX_RIGHT {
-						newLeft = left - 1
-						break
-					}
-
-					if grid[key] != EMPTY {
-						newLeft = i
-						break
-					}
-				}
-
-				if newLeft == -1 {
-					firstEmptyY = y
-					break
-				}
-
-				for i := right - 1; i >= left; i++ {
-					key := utils.PosToString(i, y)
-					if i == right-1 && grid[key] == BOX_LEFT {
-						newRight = right + 1
-						break
-					}
-
-					if grid[key] != EMPTY {
-						right = i
-						break
-					}
-				}
-
-				left = newLeft
-				right = newRight
-				rowBounds = append(rowBounds, []int{left, right})
-			}
-
-			if firstEmptyY == -1 {
-				break
-			}
-
-			if len(rowBounds) == 0 {
-				robot.Y--
-				break
-			}
-
-			for y := firstEmptyY; y < robot.Y; y++ {
-				if y == robot.Y-1 {
-					row := rowBounds[0]
-					left := row[0]
-					right := row[1]
-					for i := left; i < right; i++ {
-						key := utils.PosToString(i, y)
-						grid[key] = EMPTY
-					}
-					break
-				}
-
-				nextRow := rowBounds[len(rowBounds)-1-(y-firstEmptyY)]
-				left := nextRow[0]
-				right := nextRow[1]
-				for i := left; i < right; i++ {
-					key := utils.PosToString(i, y)
-					nextKey := utils.PosToString(i, y+1)
-					grid[key] = grid[nextKey]
-					grid[nextKey] = EMPTY
-				}
-			}
-
-			robot.Y--
-			break
-		case DOWN:
-			if robot.Y == height-1 {
-				break
-			}
-
-			firstEmptyY := -1
-			left := robot.X
-			right := robot.X + 1
-			rowBounds := make([][]int, 0)
-			for y := robot.Y + 1; y < height; y++ {
-				// check for wall
-				foundWall := false
-				for i := left; i < right; i++ {
-					key := utils.PosToString(left, y)
-					if grid[key] == WALL {
-						foundWall = true
-						break
-					}
-				}
-				if foundWall {
-					break
-				}
-
-				newLeft := -1
-				newRight := right
-				for i := left; i < right; i++ {
-					key := utils.PosToString(i, y)
-					if i == left && grid[key] == BOX_RIGHT {
-						newLeft = left - 1
-						break
-					}
-
-					if grid[key] != EMPTY {
-						newLeft = i
-						break
-					}
-				}
-
-				if newLeft == -1 {
-					firstEmptyY = y
-					break
-				}
-
-				for i := right - 1; i >= left; i++ {
-					key := utils.PosToString(i, y)
-					if i == right-1 && grid[key] == BOX_LEFT {
-						newRight = right + 1
-						break
-					}
-
-					if grid[key] != EMPTY {
-						right = i
-						break
-					}
-				}
-
-				left = newLeft
-				right = newRight
-				rowBounds = append(rowBounds, []int{left, right})
-			}
-
-			if firstEmptyY == -1 {
-				break
-			}
-
-			if len(rowBounds) == 0 {
-				robot.Y++
-				break
-			}
-
-			for y := firstEmptyY; y > robot.Y; y-- {
-				if y == robot.Y+1 {
-					row := rowBounds[0]
-					left := row[0]
-					right := row[1]
-					for i := left; i < right; i++ {
-						key := utils.PosToString(i, y)
-						grid[key] = EMPTY
-					}
-					break
-				}
-
-				nextRow := rowBounds[len(rowBounds)-1-(firstEmptyY-y)]
-				left := nextRow[0]
-				right := nextRow[1]
-				for i := left; i < right; i++ {
-					key := utils.PosToString(i, y)
-					nextKey := utils.PosToString(i, y-1)
-					grid[key] = grid[nextKey]
-					grid[nextKey] = EMPTY
-				}
-			}
-
-			robot.Y++
-			break
-		case LEFT:
-			if robot.X == 0 {
-				break
-			}
-
-			firstEmptyX := -1
-			for x := robot.X - 1; x >= 0; x-- {
-				key := utils.PosToString(x, robot.Y)
-				if grid[key] == WALL {
-					break
-				}
-				if grid[key] == EMPTY {
-					firstEmptyX = x
-					break
-				}
-			}
-			if firstEmptyX == -1 {
-				break
-			}
-
-			currSpot := EMPTY
-			for x := robot.X - 1; x >= firstEmptyX; x-- {
-				key := utils.PosToString(x, robot.Y)
-				tmp := currSpot
-				currSpot = grid[key]
-				grid[key] = tmp
-			}
-
-			robot.X--
-			break
-		case RIGHT:
-			if robot.X == width-1 {
-				break
-			}
-
-			firstEmptyX := -1
-			for x := robot.X + 1; x < width; x++ {
-				key := utils.PosToString(x, robot.Y)
-				if grid[key] == WALL {
-					break
-				}
-				if grid[key] == EMPTY {
-					firstEmptyX = x
-					break
-				}
-			}
-			if firstEmptyX == -1 {
-				break
-			}
-
-			currSpot := EMPTY
-			for x := robot.X + 1; x <= firstEmptyX; x++ {
-				key := utils.PosToString(x, robot.Y)
-				tmp := currSpot
-				currSpot = grid[key]
-				grid[key] = tmp
-			}
-
-			robot.X++
-			break
-		default:
-			break
-		}
-		printGrid(grid, width, height, robot, os.Stdout)
-	}
-
-	answer := 0
-	for y := range height {
-		for x := range width {
-			if grid[utils.PosToString(x, y)] == BOX_LEFT {
-				answer += 100*(y+1) + x + 2
-			}
-		}
-	}
-
-	return strconv.Itoa(answer)
-}
-
-func printGrid(grid map[string]Point, width int, height int, robot utils.Pos, file *os.File) {
-	for y := range height {
-		for x := range width {
-			if x == robot.X && y == robot.Y {
-				fmt.Fprint(file, "@")
-				continue
-			}
-			fmt.Fprint(file, string(grid[utils.PosToString(x, y)]))
-		}
-		fmt.Fprintln(file)
-	}
-	fmt.Fprintln(file)
+	return Grid{
+		Map:    grid,
+		Width:  width,
+		Height: height,
+	}, moves, robot
 }
