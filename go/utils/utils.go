@@ -230,7 +230,7 @@ func (q *Queue[T]) Dequeue() T {
 	}
 
 	val = q.queue[0]
-    q.queue = q.queue[1:]
+	q.queue = q.queue[1:]
 	q.size--
 	return val
 }
@@ -267,4 +267,83 @@ func (q *Stack[T]) Pop() T {
 
 func (q *Stack[T]) IsEmpty() bool {
 	return q.size == 0
+}
+
+type QueueItem[T any] interface {
+	Less(other T) bool
+}
+
+// PriorityQueue represents a generic priority queue
+type PriorityQueue[T QueueItem[T]] struct {
+	items []T
+}
+
+// New creates a new priority queue
+func NewPriorityQueue[T QueueItem[T]]() *PriorityQueue[T] {
+	return &PriorityQueue[T]{
+		items: make([]T, 0),
+	}
+}
+
+// Push adds an item to the queue
+func (pq *PriorityQueue[T]) Push(item T) {
+	pq.items = append(pq.items, item)
+	pq.up(len(pq.items) - 1)
+}
+
+// Pop removes and returns the highest priority item
+func (pq *PriorityQueue[T]) Pop() (T, bool) {
+	if len(pq.items) == 0 {
+		var zero T
+		return zero, false
+	}
+
+	item := pq.items[0]
+	last := len(pq.items) - 1
+	pq.items[0] = pq.items[last]
+	pq.items = pq.items[:last]
+	if len(pq.items) > 0 {
+		pq.down(0)
+	}
+	return item, true
+}
+
+// Len returns the number of items in the queue
+func (pq *PriorityQueue[T]) Len() int {
+	return len(pq.items)
+}
+
+// Internal heap operations
+func (pq *PriorityQueue[T]) up(index int) {
+	for index > 0 {
+		parent := (index - 1) / 2
+		if pq.items[index].Less(pq.items[parent]) {
+			pq.items[index], pq.items[parent] = pq.items[parent], pq.items[index]
+			index = parent
+		} else {
+			break
+		}
+	}
+}
+
+func (pq *PriorityQueue[T]) down(index int) {
+	for {
+		smallest := index
+		left := 2*index + 1
+		right := 2*index + 2
+
+		if left < len(pq.items) && pq.items[left].Less(pq.items[smallest]) {
+			smallest = left
+		}
+		if right < len(pq.items) && pq.items[right].Less(pq.items[smallest]) {
+			smallest = right
+		}
+
+		if smallest == index {
+			break
+		}
+
+		pq.items[index], pq.items[smallest] = pq.items[smallest], pq.items[index]
+		index = smallest
+	}
 }

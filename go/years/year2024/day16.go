@@ -102,23 +102,33 @@ func NewMaze(input []string) *Maze {
 }
 
 func (m Maze) GetPaths(start utils.Pos, end utils.Pos) []MazePath {
-	initialPath := MazePath{
-		pos: start,
-
-		Score: 0,
-		Path:  []utils.Pos{start},
+	unvisitedSet := make(map[string]utils.Pos)
+	for i, row := range m.maze {
+		for j, pt := range row {
+			if pt == EMPTY {
+				unvisitedSet[utils.Pos{X: j, Y: i}.String(false)] = utils.Pos{X: j, Y: i}
+			}
+		}
 	}
 
-	paths := make([]MazePath, 0)
-	q := utils.NewQueue[MazePath]()
-	q.Enqueue(initialPath)
+	pq := utils.NewPriorityQueue[MazePath]()
+	pq.Push(MazePath{
+		pos:   start,
+		Score: 0,
+		Path:  []utils.Pos{start},
+	})
 
+	bestScore := 0
 	visited := make(map[string]int)
-	for !q.IsEmpty() {
-		current := q.Dequeue()
+	paths := make([]MazePath, 0)
+	for pq.Len() > 0 {
+		current, _ := pq.Pop()
 
 		if current.pos.Equals(end, false) {
 			paths = append(paths, current)
+			if bestScore == 0 || current.Score < bestScore {
+				bestScore = current.Score
+			}
 			continue
 		}
 
@@ -128,41 +138,26 @@ func (m Maze) GetPaths(start utils.Pos, end utils.Pos) []MazePath {
 		}
 		visited[key] = current.Score
 
-		// forward
-		nextPos := current.pos.MoveForward()
-		if m.maze[nextPos.Y][nextPos.X] == EMPTY {
+		for i := range 3 {
+			nextPos := current.pos
+			score := 1
+			if i == 1 {
+				nextPos = nextPos.TurnLeft()
+				score += 1000
+			} else if i == 2 {
+				nextPos = nextPos.TurnRight()
+				score += 1000
+			}
+			nextPos = nextPos.MoveForward()
+			if m.maze[nextPos.Y][nextPos.X] != EMPTY {
+				continue
+			}
 			newPath := make([]utils.Pos, len(current.Path))
 			copy(newPath, current.Path)
 			newPath = append(newPath, nextPos)
-			q.Enqueue(MazePath{
+			pq.Push(MazePath{
 				pos:   nextPos,
-				Score: current.Score + 1,
-				Path:  newPath,
-			})
-		}
-
-		// turn left
-		nextPos = current.pos.TurnLeft().MoveForward()
-		if m.maze[nextPos.Y][nextPos.X] == EMPTY {
-			newPath := make([]utils.Pos, len(current.Path))
-			copy(newPath, current.Path)
-			newPath = append(newPath, nextPos)
-			q.Enqueue(MazePath{
-				pos:   nextPos,
-				Score: current.Score + 1001,
-				Path:  newPath,
-			})
-		}
-
-		// turn right
-		nextPos = current.pos.TurnRight().MoveForward()
-		if m.maze[nextPos.Y][nextPos.X] == EMPTY {
-			newPath := make([]utils.Pos, len(current.Path))
-			copy(newPath, current.Path)
-			newPath = append(newPath, nextPos)
-			q.Enqueue(MazePath{
-				pos:   nextPos,
-				Score: current.Score + 1001,
+				Score: current.Score + score,
 				Path:  newPath,
 			})
 		}
@@ -196,6 +191,10 @@ func (m Maze) Print(path []utils.Pos) {
 		}
 		fmt.Println()
 	}
+}
+
+func (p MazePath) Less(q MazePath) bool {
+	return p.Score < q.Score
 }
 
 func (p MazePath) Print() {
