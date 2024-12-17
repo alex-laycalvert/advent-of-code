@@ -122,7 +122,6 @@ func (m Maze) GetPaths(start utils.Pos, end utils.Pos) []MazePath {
 	paths := make([]MazePath, 0)
 	for pq.Len() > 0 {
 		current, _ := pq.Pop()
-
 		if current.pos.Equals(end, false) {
 			paths = append(paths, current)
 			if bestScore == 0 || current.Score < bestScore {
