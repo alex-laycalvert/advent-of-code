@@ -471,8 +471,8 @@ func TestDay16(t *testing.T) {
 		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
 	}
 
-    expectedPart2 = "45"
-    part2 = day16.Part2()
+	expectedPart2 = "45"
+	part2 = day16.Part2()
 	if part2 != expectedPart2 {
 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
 	}
@@ -511,5 +511,35 @@ func TestDay16(t *testing.T) {
 	part1 = day16.Part1()
 	if part1 != expectedPart1 {
 		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
+}
+
+func TestDay17(t *testing.T) {
+	day17 := year2024.Day17{Input: []string{
+		"Register A: 729",
+		"Register B: 0",
+		"Register C: 0",
+		"",
+		"Program: 0,1,5,4,3,0",
+	}}
+
+	expectedPart1 := "4,6,3,5,6,3,5,2,1,0"
+	part1 := day17.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
+
+	day17 = year2024.Day17{Input: []string{
+		"Register A: 2024",
+		"Register B: 0",
+		"Register C: 0",
+		"",
+		"Program: 0,3,5,4,3,0",
+	}}
+
+	expectedPart2 := "117440"
+	part2 := day17.Part2()
+	if part2 != expectedPart2 {
+		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
 	}
 }
