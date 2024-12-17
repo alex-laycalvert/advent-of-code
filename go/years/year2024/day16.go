@@ -46,7 +46,7 @@ func (d Day16) Part2() string {
 		if path.Score > bestPath.Score {
 			continue
 		}
-		for _, pos := range path.Path {
+		for _, pos := range path.Reconstruct() {
 			if pathContains(uniqueTiles, pos) {
 				continue
 			}
@@ -68,7 +68,7 @@ type MazePath struct {
 	pos utils.Pos
 
 	Score int
-	Path  []utils.Pos
+	From  *MazePath
 }
 
 func NewMaze(input []string) *Maze {
@@ -115,7 +115,6 @@ func (m Maze) GetPaths(start utils.Pos, end utils.Pos) []MazePath {
 	pq.Push(MazePath{
 		pos:   start,
 		Score: 0,
-		Path:  []utils.Pos{start},
 	})
 
 	bestScore := 0
@@ -152,13 +151,10 @@ func (m Maze) GetPaths(start utils.Pos, end utils.Pos) []MazePath {
 			if m.maze[nextPos.Y][nextPos.X] != EMPTY {
 				continue
 			}
-			newPath := make([]utils.Pos, len(current.Path))
-			copy(newPath, current.Path)
-			newPath = append(newPath, nextPos)
 			pq.Push(MazePath{
 				pos:   nextPos,
 				Score: current.Score + score,
-				Path:  newPath,
+				From:  &current,
 			})
 		}
 	}
@@ -198,13 +194,22 @@ func (p MazePath) Less(q MazePath) bool {
 }
 
 func (p MazePath) Print() {
-	for i, pos := range p.Path {
+	path := p.Reconstruct()
+	for i, pos := range path {
 		fmt.Print(pos.String(true))
-		if i != len(p.Path)-1 {
+		if i != len(path)-1 {
 			fmt.Print(" -> ")
 		}
 	}
 	fmt.Println()
+}
+
+func (p MazePath) Reconstruct() []utils.Pos {
+	pts := make([]utils.Pos, 0)
+	for current := &p; current != nil; current = current.From {
+		pts = append(pts, current.pos)
+	}
+	return pts
 }
 
 func pathContains(path []utils.Pos, pos utils.Pos) bool {
