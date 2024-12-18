@@ -537,6 +537,8 @@ func TestDay17(t *testing.T) {
 		"Program: 0,3,5,4,3,0",
 	}}
 
+	// 0 -> operand to 5: op%8 == 0
+
 	expectedPart2 := "117440"
 	part2 := day17.Part2()
 	if part2 != expectedPart2 {
