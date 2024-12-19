@@ -285,6 +285,10 @@ func NewPriorityQueue[T QueueItem[T]]() *PriorityQueue[T] {
 	}
 }
 
+func (pq *PriorityQueue[T]) IsEmpty() bool {
+	return pq.Len() == 0
+}
+
 // Push adds an item to the queue
 func (pq *PriorityQueue[T]) Push(item T) {
 	pq.items = append(pq.items, item)
