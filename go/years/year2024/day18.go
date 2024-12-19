@@ -67,19 +67,15 @@ func (d Day18) Part2() string {
 	maze.Start = search.Point{Row: 0, Col: 0}
 	maze.End = search.Point{Row: size - 1, Col: size - 1}
 
+	for _, line := range d.Input {
+		parts := utils.ParseNumbers(line)
+		x, y := parts[0], parts[1]
+		maze.Walls = append(maze.Walls, search.Point{Row: y, Col: x})
+	}
+
 	searcher := search.NewDijkstra()
 	for maxBytes := len(d.Input) - 1; maxBytes >= 0; maxBytes-- {
-		maze.Walls = make(search.Points, 0)
-
-		for i, line := range d.Input {
-			if i >= maxBytes {
-				break
-			}
-			parts := utils.ParseNumbers(line)
-			x, y := parts[0], parts[1]
-			maze.Walls = append(maze.Walls, search.Point{Row: y, Col: x})
-		}
-
+		maze.Walls = maze.Walls[:maxBytes]
 		bestPath := make(search.Points, 0)
 		for path := range searcher.Search(*maze) {
 			bestPath = path.CurrentPath
