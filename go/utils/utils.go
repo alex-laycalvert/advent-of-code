@@ -7,6 +7,15 @@ import (
 	"time"
 )
 
+type Move rune
+
+const (
+	UP    Move = '^'
+	DOWN  Move = 'v'
+	LEFT  Move = '<'
+	RIGHT Move = '>'
+)
+
 func ReadFile(filename string) []string {
 	lines := []string{}
 	for line := range ReadLines(filename) {

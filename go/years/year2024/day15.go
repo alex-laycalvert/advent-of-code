@@ -19,7 +19,6 @@ type Day15 struct {
 
 type (
 	Point rune
-	Move  rune
 )
 
 const (
@@ -28,16 +27,11 @@ const (
 	BOX       Point = 'O'
 	BOX_RIGHT Point = ']'
 	BOX_LEFT  Point = '['
-
-	UP    Move = '^'
-	DOWN  Move = 'v'
-	LEFT  Move = '<'
-	RIGHT Move = '>'
 )
 
 func (d Day15) Part1() string {
 	grid := make(map[string]Point)
-	moves := make([]Move, 0)
+	moves := make([]utils.Move, 0)
 
 	var width, height int
 	var robot utils.Pos
@@ -46,7 +40,7 @@ func (d Day15) Part1() string {
 	for row, line := range d.Input {
 		if parsingMoves {
 			for _, c := range line {
-				moves = append(moves, Move(c))
+				moves = append(moves, utils.Move(c))
 			}
 			continue
 		}
@@ -89,7 +83,7 @@ func (d Day15) Part1() string {
 
 	for _, move := range moves {
 		switch move {
-		case UP:
+		case utils.UP:
 			if robot.Y == 0 {
 				continue
 			}
@@ -119,7 +113,7 @@ func (d Day15) Part1() string {
 
 			robot.Y--
 			break
-		case DOWN:
+		case utils.DOWN:
 			if robot.Y == height-1 {
 				continue
 			}
@@ -149,7 +143,7 @@ func (d Day15) Part1() string {
 
 			robot.Y++
 			break
-		case LEFT:
+		case utils.LEFT:
 			if robot.X == 0 {
 				continue
 			}
@@ -179,7 +173,7 @@ func (d Day15) Part1() string {
 
 			robot.X--
 			break
-		case RIGHT:
+		case utils.RIGHT:
 			if robot.X == width-1 {
 				continue
 			}
@@ -254,7 +248,7 @@ type Grid struct {
 	Height int
 }
 
-func (grid *Grid) Move(pos utils.Pos, move Move) utils.Pos {
+func (grid *Grid) Move(pos utils.Pos, move utils.Move) utils.Pos {
 	if !grid.IsPossible(pos, move) {
 		return pos
 	}
@@ -262,57 +256,57 @@ func (grid *Grid) Move(pos utils.Pos, move Move) utils.Pos {
 	currentKey := pos.String(false)
 	currentPt := grid.Map[currentKey]
 	switch move {
-	case UP:
+	case utils.UP:
 		nextKey := utils.PosToString(pos.X, pos.Y-1)
 		pt := grid.Map[nextKey]
 
 		if pt == BOX_LEFT {
-			grid.Move(utils.Pos{X: pos.X, Y: pos.Y - 1}, UP)
-			grid.Move(utils.Pos{X: pos.X + 1, Y: pos.Y - 1}, UP)
+			grid.Move(utils.Pos{X: pos.X, Y: pos.Y - 1}, utils.UP)
+			grid.Move(utils.Pos{X: pos.X + 1, Y: pos.Y - 1}, utils.UP)
 		}
 
 		if pt == BOX_RIGHT {
-			grid.Move(utils.Pos{X: pos.X, Y: pos.Y - 1}, UP)
-			grid.Move(utils.Pos{X: pos.X - 1, Y: pos.Y - 1}, UP)
+			grid.Move(utils.Pos{X: pos.X, Y: pos.Y - 1}, utils.UP)
+			grid.Move(utils.Pos{X: pos.X - 1, Y: pos.Y - 1}, utils.UP)
 		}
 
 		grid.Map[nextKey] = currentPt
 		grid.Map[currentKey] = EMPTY
 		return utils.Pos{X: pos.X, Y: pos.Y - 1}
-	case DOWN:
+	case utils.DOWN:
 		nextKey := utils.PosToString(pos.X, pos.Y+1)
 		pt := grid.Map[nextKey]
 
 		if pt == BOX_LEFT {
-			grid.Move(utils.Pos{X: pos.X, Y: pos.Y + 1}, DOWN)
-			grid.Move(utils.Pos{X: pos.X + 1, Y: pos.Y + 1}, DOWN)
+			grid.Move(utils.Pos{X: pos.X, Y: pos.Y + 1}, utils.DOWN)
+			grid.Move(utils.Pos{X: pos.X + 1, Y: pos.Y + 1}, utils.DOWN)
 		}
 
 		if pt == BOX_RIGHT {
-			grid.Move(utils.Pos{X: pos.X, Y: pos.Y + 1}, DOWN)
-			grid.Move(utils.Pos{X: pos.X - 1, Y: pos.Y + 1}, DOWN)
+			grid.Move(utils.Pos{X: pos.X, Y: pos.Y + 1}, utils.DOWN)
+			grid.Move(utils.Pos{X: pos.X - 1, Y: pos.Y + 1}, utils.DOWN)
 		}
 
 		grid.Map[nextKey] = currentPt
 		grid.Map[currentKey] = EMPTY
 		return utils.Pos{X: pos.X, Y: pos.Y + 1}
-	case LEFT:
+	case utils.LEFT:
 		nextKey := utils.PosToString(pos.X-1, pos.Y)
 		pt := grid.Map[nextKey]
 
 		if pt != EMPTY {
-			grid.Move(utils.Pos{X: pos.X - 1, Y: pos.Y}, LEFT)
+			grid.Move(utils.Pos{X: pos.X - 1, Y: pos.Y}, utils.LEFT)
 		}
 
 		grid.Map[nextKey] = currentPt
 		grid.Map[currentKey] = EMPTY
 		return utils.Pos{X: pos.X - 1, Y: pos.Y}
-	case RIGHT:
+	case utils.RIGHT:
 		nextKey := utils.PosToString(pos.X+1, pos.Y)
 		pt := grid.Map[nextKey]
 
 		if pt != EMPTY {
-			grid.Move(utils.Pos{X: pos.X + 1, Y: pos.Y}, RIGHT)
+			grid.Move(utils.Pos{X: pos.X + 1, Y: pos.Y}, utils.RIGHT)
 		}
 
 		grid.Map[nextKey] = currentPt
@@ -323,9 +317,9 @@ func (grid *Grid) Move(pos utils.Pos, move Move) utils.Pos {
 	}
 }
 
-func (grid Grid) IsPossible(pos utils.Pos, move Move) bool {
+func (grid Grid) IsPossible(pos utils.Pos, move utils.Move) bool {
 	switch move {
-	case UP:
+	case utils.UP:
 		if pos.Y == 0 {
 			return false
 		}
@@ -341,12 +335,12 @@ func (grid Grid) IsPossible(pos utils.Pos, move Move) bool {
 		}
 
 		if pt == BOX_LEFT {
-			return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y - 1}, UP) && grid.IsPossible(utils.Pos{X: pos.X + 1, Y: pos.Y - 1}, UP)
+			return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y - 1}, utils.UP) && grid.IsPossible(utils.Pos{X: pos.X + 1, Y: pos.Y - 1}, utils.UP)
 		}
 
 		// BOX_RIGHT
-		return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y - 1}, UP) && grid.IsPossible(utils.Pos{X: pos.X - 1, Y: pos.Y - 1}, UP)
-	case DOWN:
+		return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y - 1}, utils.UP) && grid.IsPossible(utils.Pos{X: pos.X - 1, Y: pos.Y - 1}, utils.UP)
+	case utils.DOWN:
 		if pos.Y == grid.Height-1 {
 			return false
 		}
@@ -362,12 +356,12 @@ func (grid Grid) IsPossible(pos utils.Pos, move Move) bool {
 		}
 
 		if pt == BOX_LEFT {
-			return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y + 1}, DOWN) && grid.IsPossible(utils.Pos{X: pos.X + 1, Y: pos.Y + 1}, DOWN)
+			return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y + 1}, utils.DOWN) && grid.IsPossible(utils.Pos{X: pos.X + 1, Y: pos.Y + 1}, utils.DOWN)
 		}
 
 		// BOX_RIGHT
-		return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y + 1}, DOWN) && grid.IsPossible(utils.Pos{X: pos.X - 1, Y: pos.Y + 1}, DOWN)
-	case LEFT:
+		return grid.IsPossible(utils.Pos{X: pos.X, Y: pos.Y + 1}, utils.DOWN) && grid.IsPossible(utils.Pos{X: pos.X - 1, Y: pos.Y + 1}, utils.DOWN)
+	case utils.LEFT:
 		if pos.X == 0 {
 			return false
 		}
@@ -382,8 +376,8 @@ func (grid Grid) IsPossible(pos utils.Pos, move Move) bool {
 			return false
 		}
 
-		return grid.IsPossible(utils.Pos{X: pos.X - 1, Y: pos.Y}, LEFT)
-	case RIGHT:
+		return grid.IsPossible(utils.Pos{X: pos.X - 1, Y: pos.Y}, utils.LEFT)
+	case utils.RIGHT:
 		if pos.X == grid.Width-1 {
 			return false
 		}
@@ -398,7 +392,7 @@ func (grid Grid) IsPossible(pos utils.Pos, move Move) bool {
 			return false
 		}
 
-		return grid.IsPossible(utils.Pos{X: pos.X + 1, Y: pos.Y}, RIGHT)
+		return grid.IsPossible(utils.Pos{X: pos.X + 1, Y: pos.Y}, utils.RIGHT)
 	default:
 		return false
 	}
@@ -418,9 +412,9 @@ func (grid *Grid) Print(robot utils.Pos, w io.Writer) {
 	fmt.Fprintln(w)
 }
 
-func NewGrid(input []string) (Grid, []Move, utils.Pos) {
+func NewGrid(input []string) (Grid, []utils.Move, utils.Pos) {
 	grid := make(map[string]Point)
-	moves := make([]Move, 0)
+	moves := make([]utils.Move, 0)
 
 	var width, height int
 	var robot utils.Pos
@@ -428,7 +422,7 @@ func NewGrid(input []string) (Grid, []Move, utils.Pos) {
 	for row, line := range input {
 		if parsingMoves {
 			for _, c := range line {
-				moves = append(moves, Move(c))
+				moves = append(moves, utils.Move(c))
 			}
 			continue
 		}

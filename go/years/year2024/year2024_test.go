@@ -638,34 +638,34 @@ func TestDay20(t *testing.T) {
 		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
 	}
 
-	expectedPart2 := "Not Implemented"
+	expectedPart2 := "0"
 	part2 := day20.Part2()
 	if part2 != expectedPart2 {
 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
 	}
 }
 
-// func TestDay21(t *testing.T) {
-// 	day21 := year2024.Day21{Input: []string{
-// 		"029A",
-// 		"980A",
-// 		"179A",
-// 		"456A",
-// 		"379A",
-// 	}}
-//
-// 	expectedPart1 := "126384"
-// 	part1 := day21.Part1()
-// 	if part1 != expectedPart1 {
-// 		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
-// 	}
-//
-// 	expectedPart2 := "Not Implemented"
-// 	part2 := day21.Part2()
-// 	if part2 != expectedPart2 {
-// 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
-// 	}
-// }
+func TestDay21(t *testing.T) {
+	day21 := year2024.Day21{Input: []string{
+		"029A",
+		"980A",
+		"179A",
+		"456A",
+		"379A",
+	}}
+
+	expectedPart1 := "126384"
+	part1 := day21.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
+
+	// expectedPart2 := "Not Implemented"
+	// part2 := day21.Part2()
+	// if part2 != expectedPart2 {
+	// 	t.Fatalf("Expected %s, got %s", expectedPart2, part2)
+	// }
+}
 
 func TestDay22(t *testing.T) {
 	day22 := year2024.Day22{Input: []string{

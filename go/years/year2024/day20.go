@@ -38,7 +38,7 @@ func (d Day20) Part2() string {
 		path = iter.CurrentPath
 	}
 	slices.Reverse(path)
-	cheatSavings := 50
+	cheatSavings := 100
 	cheatDistance := 20
 	answer := findCheats(path, cheatSavings, cheatDistance)
 	return strconv.Itoa(answer)
