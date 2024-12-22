@@ -3,7 +3,8 @@ package search
 import (
 	"errors"
 	"fmt"
-	"math"
+
+	"github.com/alex-laycalvert/advent-of-code/utils"
 )
 
 type SearchIteration struct {
@@ -124,7 +125,7 @@ func (pt Point) Equals(other Point) bool {
 }
 
 func (pt Point) DistanceTo(other Point) int {
-	return int(math.Sqrt(math.Pow(float64(pt.Row-other.Row), 2) + math.Pow(float64(pt.Col-other.Col), 2)))
+	return utils.IntAbs(pt.Row-other.Row) + utils.IntAbs(pt.Col-other.Col)
 }
 
 type Points []Point

@@ -351,3 +351,13 @@ func (pq *PriorityQueue[T]) down(index int) {
 		index = smallest
 	}
 }
+
+func SliceFilter[S any](s []S, predicate func(item S) bool) []S {
+	filtered := make([]S, 0)
+	for _, item := range s {
+		if predicate(item) {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
+}
