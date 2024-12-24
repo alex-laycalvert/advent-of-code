@@ -41,14 +41,18 @@ func (d Day22) Part2() string {
 		clear(seen)
 		value, err := strconv.Atoi(line)
 		utils.PanicErr(err)
+
+		// get the first 4 secrets/prices
 		value, price1 := next(value)
 		value, price2 := next(value)
 		value, price3 := next(value)
 		value, price4 := next(value)
 
 		for range numSecrets - 4 {
+			// get the next secret/price
 			nextValue, nextPrice := next(value)
 			value = nextValue
+			// this emulates a sliding window of the list of all changes in price
 			key := getKey(price2-price1, price3-price2, price4-price3, nextPrice-price4)
 			if _, ok := seen[key]; !ok {
 				seen[key] = key
@@ -57,6 +61,8 @@ func (d Day22) Part2() string {
 					maxValue = maxPrices[key]
 				}
 			}
+
+			// shift all prices forward to get next window
 			price1, price2, price3, price4 = price2, price3, price4, nextPrice
 		}
 	}
