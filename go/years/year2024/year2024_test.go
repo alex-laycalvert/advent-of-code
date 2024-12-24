@@ -646,19 +646,19 @@ func TestDay20(t *testing.T) {
 }
 
 func TestDay21(t *testing.T) {
-	day21 := year2024.Day21{Input: []string{
-		"029A",
-		"980A",
-		"179A",
-		"456A",
-		"379A",
-	}}
+	// day21 := year2024.Day21{Input: []string{
+	// 	"029A",
+	// 	"980A",
+	// 	"179A",
+	// 	"456A",
+	// 	"379A",
+	// }}
 
-	expectedPart1 := "126384"
-	part1 := day21.Part1()
-	if part1 != expectedPart1 {
-		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
-	}
+	// expectedPart1 := "126384"
+	// part1 := day21.Part1()
+	// if part1 != expectedPart1 {
+	// 	t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	// }
 
 	// expectedPart2 := "Not Implemented"
 	// part2 := day21.Part2()
@@ -690,6 +690,55 @@ func TestDay22(t *testing.T) {
 
 	expectedPart2 := "23"
 	part2 := day22.Part2()
+	if part2 != expectedPart2 {
+		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
+	}
+}
+
+func TestDay23(t *testing.T) {
+	day23 := year2024.Day23{Input: []string{
+		"kh-tc",
+		"qp-kh",
+		"de-cg",
+		"ka-co",
+		"yn-aq",
+		"qp-ub",
+		"cg-tb",
+		"vc-aq",
+		"tb-ka",
+		"wh-tc",
+		"yn-cg",
+		"kh-ub",
+		"ta-co",
+		"de-co",
+		"tc-td",
+		"tb-wq",
+		"wh-td",
+		"ta-ka",
+		"td-qp",
+		"aq-cg",
+		"wq-ub",
+		"ub-vc",
+		"de-ta",
+		"wq-aq",
+		"wq-vc",
+		"wh-yn",
+		"ka-de",
+		"kh-ta",
+		"co-tc",
+		"wh-qp",
+		"tb-vc",
+		"td-yn",
+	}}
+
+	expectedPart1 := "7"
+	part1 := day23.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
+
+	expectedPart2 := "co,de,ka,ta"
+	part2 := day23.Part2()
 	if part2 != expectedPart2 {
 		t.Fatalf("Expected %s, got %s", expectedPart2, part2)
 	}

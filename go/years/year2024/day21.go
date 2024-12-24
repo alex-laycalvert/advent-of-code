@@ -57,120 +57,95 @@ var directionalKeypadNeighbors = map[rune][][]rune{
 }
 
 func (d Day21) Part1() string {
-	shortestNumericPaths := getAllKeyboardNeighborPaths(numericKeypadNeighbors)
-	shortestDirectionalPaths := getAllKeyboardNeighborPaths(directionalKeypadNeighbors)
+	// shortestNumericPaths := getAllKeyboardNeighborPaths(numericKeypadNeighbors)
+	// shortestDirectionalPaths := getAllKeyboardNeighborPaths(directionalKeypadNeighbors)
 
 	answer := 0
-	for _, line := range d.Input {
-		minPath := getShortestPathForRobots(line, 2, shortestNumericPaths, shortestDirectionalPaths)
-		numericPart, err := strconv.Atoi(strings.TrimRight(strings.TrimLeft(line, "0"), "A"))
-		utils.PanicErr(err)
-		answer += len(minPath) * numericPart
-	}
+	input := d.Input[0]
 
-	return strconv.Itoa(answer)
+	_ = solve(input)
+
+	// numericPart, err := strconv.Atoi(strings.TrimRight(strings.TrimLeft(input, "0"), "A"))
+	// utils.PanicErr(err)
+	// answer += numericPart * len(minPath)
+	return strconv.Itoa(answer + 1)
 }
 
 func (d Day21) Part2() string {
-	shortestNumericPaths := getAllKeyboardNeighborPaths(numericKeypadNeighbors)
-	shortestDirectionalPaths := getAllKeyboardNeighborPaths(directionalKeypadNeighbors)
+	return "Not Implemented"
+}
 
-	answer := 0
-	for _, line := range d.Input {
-		minPath := getShortestPathForRobots(line, 25, shortestNumericPaths, shortestDirectionalPaths)
-		numericPart, err := strconv.Atoi(strings.TrimRight(strings.TrimLeft(line, "0"), "A"))
-		utils.PanicErr(err)
-		answer += len(minPath) * numericPart
+type Path struct {
+	value byte
+	index int
+	cost  int
+}
+
+func (p Path) Less(other Path) bool {
+	return p.cost > other.cost
+}
+
+func solve(input string) string {
+	pq := utils.NewPriorityQueue[Path]()
+	pq.Push(Path{'A', 0, 0})
+	visited := make(map[string]string)
+	for current, ok := pq.Pop(); ok; current, ok = pq.Pop() {
+		key := string(current.value) + ":" + strconv.Itoa(current.index)
+
+		if _, ok := visited[key]; ok {
+			continue
+		}
+		visited[key] = key
+
+		if current.index == len(input) {
+			return ""
+		}
+
+		// Pressing action
+		if current.value == input[current.index] {
+			pq.Push(Path{
+				value: current.value,
+				index: current.index + 1,
+			})
+		}
+
+		// Moving
+		for _, neighbor := range numericKeypadNeighbors[rune(current.value)] {
+			pq.Push(Path{
+				value: byte(neighbor[1]),
+				index: current.index,
+			})
+		}
+	}
+	return ""
+}
+
+func calculateCost(target rune, current rune, depth int) int {
+	if depth == 0 {
+		return 1
 	}
 
-	return strconv.Itoa(answer)
-}
-
-type RobotArmPath struct {
-	path  string
-	count int
-}
-
-func (p RobotArmPath) Less(other RobotArmPath) bool {
-	return len(p.path) > len(other.path)
-}
-
-func getShortestPathForRobots(initial string, numberOfRobots int, numericPaths map[rune]map[rune][]string, directionalPaths map[rune]map[rune][]string) string {
-	q := utils.NewPriorityQueue[RobotArmPath]()
-	q.Push(RobotArmPath{
-		path:  initial,
-		count: 0,
+	pq := utils.NewPriorityQueue[Path]()
+	pq.Push(Path{
+		value: byte(current),
+		cost:  0,
+		index: 0,
 	})
 
-	visited := make(map[string]string)
-	minPath := ""
-	cache := make(map[string][]string)
-	for !q.IsEmpty() {
-		current, _ := q.Pop()
-		if minPath != "" && len(current.path) > len(minPath) {
-			continue
+	for current, ok := pq.Pop(); ok; current, ok = pq.Pop() {
+		if current.value == byte(target) {
+			return current.cost
 		}
 
-		if _, ok := visited[current.path]; ok {
-			continue
-		}
-
-		if current.count == numberOfRobots+1 {
-			minPath = current.path
-			continue
-		}
-		visited[current.path] = current.path
-
-		var neighbors []string
-		if current.count == 0 {
-			neighbors = getShortestPaths(current.path, numericPaths, cache)
-		} else {
-			neighbors = getShortestPaths(current.path, directionalPaths, cache)
-		}
-		for _, neighbor := range neighbors {
-			q.Push(RobotArmPath{
-				path:  neighbor,
-				count: current.count + 1,
+		for _, neighbor := range directionalKeypadNeighbors[rune(current.value)] {
+			pq.Push(Path{
+				value: byte(neighbor[1]),
+				cost:  current.cost + 1,
 			})
 		}
 	}
 
-	return minPath
-}
-
-func getShortestPaths(input string, shortestKeypadPaths map[rune]map[rune][]string, cache map[string][]string) []string {
-	paths := getShortestPathsInternal('A', input, shortestKeypadPaths, cache)
-	return paths
-}
-
-func getShortestPathsInternal(start rune, input string, shortestKeypadPaths map[rune]map[rune][]string, cache map[string][]string) []string {
-	key := string(start) + input
-	if cached, ok := cache[key]; ok {
-		return cached
-	}
-
-	if len(input) == 0 {
-		cache[key] = []string{""}
-		return []string{""}
-	}
-
-	end := rune(input[0])
-	shortestPaths := shortestKeypadPaths[start][end]
-	if len(shortestPaths) == 0 {
-		shortestPaths = []string{""}
-	}
-	paths := getShortestPathsInternal(rune(input[0]), input[1:], shortestKeypadPaths, cache)
-
-	allPaths := make([]string, 0, len(paths)*len(shortestPaths))
-	for _, shortestPath := range shortestPaths {
-		for _, path := range paths {
-			newPath := shortestPath + "A" + path
-			allPaths = append(allPaths, newPath)
-		}
-	}
-
-	cache[key] = allPaths
-	return allPaths
+	return 0
 }
 
 func getAllKeyboardNeighborPaths(neighbors map[rune][][]rune) map[rune]map[rune][]string {
@@ -188,8 +163,8 @@ func getAllKeyboardNeighborPaths(neighbors map[rune][][]rune) map[rune]map[rune]
 }
 
 func getKeyboardNeighborPaths(start rune, end rune, neighbors map[rune][][]rune) []string {
-	q := utils.NewPriorityQueue[Path]()
-	q.Push(Path{[]rune{'0', start}, "", ""})
+	q := utils.NewPriorityQueue[KeypadPath]()
+	q.Push(KeypadPath{[]rune{'0', start}, "", ""})
 	paths := make([]string, 0)
 	bestPath := 999
 	for !q.IsEmpty() {
@@ -211,19 +186,19 @@ func getKeyboardNeighborPaths(start rune, end rune, neighbors map[rune][][]rune)
 			continue
 		}
 		for _, neighbor := range neighbors[current.value[1]] {
-			q.Push(Path{neighbor, current.points, current.path})
+			q.Push(KeypadPath{neighbor, current.points, current.path})
 		}
 	}
 
 	return paths
 }
 
-type Path struct {
+type KeypadPath struct {
 	value  []rune
 	points string
 	path   string
 }
 
-func (p Path) Less(other Path) bool {
+func (p KeypadPath) Less(other KeypadPath) bool {
 	return len(p.path) > len(other.path)
 }
