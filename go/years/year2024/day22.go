@@ -1,7 +1,6 @@
 package year2024
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/alex-laycalvert/advent-of-code/utils"
@@ -21,67 +20,47 @@ type Day22 struct {
 func (d Day22) Part1() string {
 	answer := 0
 	for _, line := range d.Input {
-		secretValue, err := strconv.Atoi(line)
+		secret, err := strconv.Atoi(line)
 		utils.PanicErr(err)
-		secret := Secret{secretValue, 0, 0}
 		for range 2000 {
-			secret = nextSecret(secret)
+			secret, _ = next(secret)
 		}
-		answer += secret.Value
+		answer += secret
 	}
 
 	return strconv.Itoa(answer)
 }
 
 func (d Day22) Part2() string {
-	secrets := make([][]Secret, len(d.Input))
 	numSecrets := 2000
-	for i, line := range d.Input {
-		secrets[i] = make([]Secret, numSecrets)
-		secretValue, err := strconv.Atoi(line)
+	maxValue := 0
+	maxPrices := make(map[int]int)
+	seen := make(map[int]int)
+
+	for _, line := range d.Input {
+		clear(seen)
+		value, err := strconv.Atoi(line)
 		utils.PanicErr(err)
-		secret := Secret{
-			Value:  secretValue,
-			Change: 0,
-			Price:  secretValue % 10,
-		}
-		for j := range numSecrets {
-			secret = nextSecret(secret)
-			secrets[i][j] = secret
+		value, price1 := next(value)
+		value, price2 := next(value)
+		value, price3 := next(value)
+		value, price4 := next(value)
+
+		for range numSecrets - 4 {
+			nextValue, nextPrice := next(value)
+			value = nextValue
+			key := getKey(price2-price1, price3-price2, price4-price3, nextPrice-price4)
+			if _, ok := seen[key]; !ok {
+				seen[key] = key
+				maxPrices[key] += nextPrice
+				if maxPrices[key] > maxValue {
+					maxValue = maxPrices[key]
+				}
+			}
+			price1, price2, price3, price4 = price2, price3, price4, nextPrice
 		}
 	}
-
-	uniqueChangeKeys := make(map[string]string)
-	allSequences := make([]map[string]int, len(secrets))
-	for i, secrets := range secrets {
-		allSequences[i] = make(map[string]int, 0)
-		for j := 0; j < len(secrets)-3; j++ {
-			changeKey := fmt.Sprintf("%d,%d,%d,%d", secrets[j].Change, secrets[j+1].Change, secrets[j+2].Change, secrets[j+3].Change)
-			if _, ok := allSequences[i][changeKey]; ok {
-				continue
-			}
-			allSequences[i][changeKey] = secrets[j+3].Price
-			if _, ok := uniqueChangeKeys[changeKey]; ok {
-				continue
-			}
-			uniqueChangeKeys[changeKey] = changeKey
-		}
-	}
-
-	maxPrice := 0
-	for changeKey := range uniqueChangeKeys {
-		sum := 0
-		for _, changes := range allSequences {
-			if price, ok := changes[changeKey]; ok {
-				sum += price
-			}
-		}
-		if sum > maxPrice {
-			maxPrice = sum
-		}
-	}
-
-	return strconv.Itoa(maxPrice)
+	return strconv.Itoa(maxValue)
 }
 
 type Secret struct {
@@ -100,4 +79,15 @@ func nextSecret(secret Secret) Secret {
 		Price:  price,
 		Change: price - secret.Price,
 	}
+}
+
+func next(secret int) (value int, price int) {
+	value = (secret ^ (secret * 64)) % BASE
+	value = (value ^ (value / 32)) % BASE
+	value = (value ^ (value * 2048)) % BASE
+	return value, value % 10
+}
+
+func getKey(n1, n2, n3, n4 int) int {
+	return (n1+9)*6859 + (n2+9)*361 + (n3+9)*19 + (n4 + 9)
 }
