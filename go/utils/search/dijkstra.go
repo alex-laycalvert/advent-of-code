@@ -1,8 +1,6 @@
 package search
 
 import (
-	_ "fmt"
-
 	"github.com/alex-laycalvert/advent-of-code/utils"
 )
 
@@ -35,7 +33,6 @@ func (d Dijkstra) Search(maze Maze) func(yield func(SearchIteration) bool) {
 		visitedPoints := make(Points, 0)
 		for !pq.IsEmpty() {
 			current, _ := pq.Pop()
-			// fmt.Println(len(current.Path.Reconstruct()))
 			if visited[current.Pt.String()] {
 				continue
 			}
