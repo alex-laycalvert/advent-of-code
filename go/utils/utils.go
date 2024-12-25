@@ -227,12 +227,12 @@ func NewQueue[T any]() Queue[T] {
 	return Queue[T]{queue: []T{}, size: 0}
 }
 
-func (q *Queue[T]) Enqueue(val T) {
+func (q *Queue[T]) Push(val T) {
 	q.size++
 	q.queue = append(q.queue, val)
 }
 
-func (q *Queue[T]) Dequeue() T {
+func (q *Queue[T]) Pop() T {
 	var val T
 	if q.size == 0 {
 		return val

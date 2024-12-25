@@ -4,8 +4,6 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/zyedidia/generic/queue"
-
 	"github.com/alex-laycalvert/advent-of-code/utils"
 )
 
@@ -31,10 +29,10 @@ func (d Day12) Part1() string {
 			ch := byte(char)
 			perimeter := 0
 			area := 0
-			q := queue.New[utils.Pos]()
-			q.Enqueue(initialPos)
-			for !q.Empty() {
-				pos := q.Dequeue()
+			q := utils.NewQueue[utils.Pos]()
+			q.Push(initialPos)
+			for !q.IsEmpty() {
+				pos := q.Pop()
 				if visited[pos.String(false)] {
 					continue
 				}
@@ -44,22 +42,22 @@ func (d Day12) Part1() string {
 				neighbors := 0
 				if pos.Y > 0 && d.Input[pos.Y-1][pos.X] == ch {
 					neighbors++
-					q.Enqueue(utils.Pos{X: pos.X, Y: pos.Y - 1})
+					q.Push(utils.Pos{X: pos.X, Y: pos.Y - 1})
 				}
 
 				if pos.Y < len(d.Input)-1 && d.Input[pos.Y+1][pos.X] == ch {
 					neighbors++
-					q.Enqueue(utils.Pos{X: pos.X, Y: pos.Y + 1})
+					q.Push(utils.Pos{X: pos.X, Y: pos.Y + 1})
 				}
 
 				if pos.X > 0 && d.Input[pos.Y][pos.X-1] == ch {
 					neighbors++
-					q.Enqueue(utils.Pos{X: pos.X - 1, Y: pos.Y})
+					q.Push(utils.Pos{X: pos.X - 1, Y: pos.Y})
 				}
 
 				if pos.X < len(line)-1 && d.Input[pos.Y][pos.X+1] == ch {
 					neighbors++
-					q.Enqueue(utils.Pos{X: pos.X + 1, Y: pos.Y})
+					q.Push(utils.Pos{X: pos.X + 1, Y: pos.Y})
 				}
 				perimeter += 4 - neighbors
 			}
@@ -83,8 +81,8 @@ func (d Day12) Part2() string {
 			}
 			ch := byte(char)
 			area := 0
-			q := queue.New[utils.Pos]()
-			q.Enqueue(initialPos)
+			q := utils.NewQueue[utils.Pos]()
+			q.Push(initialPos)
 
 			type Face struct {
 				face  rune
@@ -93,8 +91,8 @@ func (d Day12) Part2() string {
 			}
 
 			faces := make([]Face, 0)
-			for !q.Empty() {
-				pos := q.Dequeue()
+			for !q.IsEmpty() {
+				pos := q.Pop()
 				if visited[pos.String(false)] {
 					continue
 				}
@@ -104,28 +102,28 @@ func (d Day12) Part2() string {
 				neighbors := 0
 				if pos.Y > 0 && d.Input[pos.Y-1][pos.X] == ch {
 					neighbors++
-					q.Enqueue(utils.Pos{X: pos.X, Y: pos.Y - 1})
+					q.Push(utils.Pos{X: pos.X, Y: pos.Y - 1})
 				} else {
 					faces = append(faces, Face{face: 'u', axis: pos.Y, index: pos.X})
 				}
 
 				if pos.Y < len(d.Input)-1 && d.Input[pos.Y+1][pos.X] == ch {
 					neighbors++
-					q.Enqueue(utils.Pos{X: pos.X, Y: pos.Y + 1})
+					q.Push(utils.Pos{X: pos.X, Y: pos.Y + 1})
 				} else {
 					faces = append(faces, Face{face: 'd', axis: pos.Y, index: pos.X})
 				}
 
 				if pos.X > 0 && d.Input[pos.Y][pos.X-1] == ch {
 					neighbors++
-					q.Enqueue(utils.Pos{X: pos.X - 1, Y: pos.Y})
+					q.Push(utils.Pos{X: pos.X - 1, Y: pos.Y})
 				} else {
 					faces = append(faces, Face{face: 'l', axis: pos.X, index: pos.Y})
 				}
 
 				if pos.X < len(line)-1 && d.Input[pos.Y][pos.X+1] == ch {
 					neighbors++
-					q.Enqueue(utils.Pos{X: pos.X + 1, Y: pos.Y})
+					q.Push(utils.Pos{X: pos.X + 1, Y: pos.Y})
 				} else {
 					faces = append(faces, Face{face: 'r', axis: pos.X, index: pos.Y})
 				}

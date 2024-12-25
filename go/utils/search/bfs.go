@@ -11,13 +11,13 @@ func NewBFS() BFS {
 func (bfs BFS) Search(maze Maze) func(yield func(SearchIteration) bool) {
 	return func(yield func(SearchIteration) bool) {
 		q := utils.NewQueue[Path]()
-		q.Enqueue(Path{
+		q.Push(Path{
 			Pt: maze.Start,
 		})
 		visited := make(map[string]bool)
 		visitedPoints := make(Points, 0)
 		for !q.IsEmpty() {
-			current := q.Dequeue()
+			current := q.Pop()
 			if visited[current.Pt.String()] {
 				continue
 			}
@@ -34,7 +34,7 @@ func (bfs BFS) Search(maze Maze) func(yield func(SearchIteration) bool) {
 			}
 			neighbors := maze.GetNeighbors(current.Pt)
 			for _, neighbor := range neighbors {
-				q.Enqueue(Path{
+				q.Push(Path{
 					Pt:   neighbor,
 					From: &current,
 				})
