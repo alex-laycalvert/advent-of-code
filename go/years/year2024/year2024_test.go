@@ -646,19 +646,19 @@ func TestDay20(t *testing.T) {
 }
 
 func TestDay21(t *testing.T) {
-	// day21 := year2024.Day21{Input: []string{
-	// 	"029A",
-	// 	"980A",
-	// 	"179A",
-	// 	"456A",
-	// 	"379A",
-	// }}
+	day21 := year2024.Day21{Input: []string{
+		"029A",
+		"980A",
+		"179A",
+		"456A",
+		"379A",
+	}}
 
-	// expectedPart1 := "126384"
-	// part1 := day21.Part1()
-	// if part1 != expectedPart1 {
-	// 	t.Fatalf("Expected %s, got %s", expectedPart1, part1)
-	// }
+	expectedPart1 := "126384"
+	part1 := day21.Part1()
+	if part1 != expectedPart1 {
+		t.Fatalf("Expected %s, got %s", expectedPart1, part1)
+	}
 
 	// expectedPart2 := "Not Implemented"
 	// part2 := day21.Part2()

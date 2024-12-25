@@ -6,23 +6,32 @@ import {
     MiniMap,
     useNodesState,
     useEdgesState,
-    type Node,
+    type Node as RFNode,
     type Edge,
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
+
+const NODE_SIZE = 35;
+const NODE_X_SPACING = 25;
+const NODE_Y_SPACING = 200;
+
+type Node = RFNode<{
+    left: string | null;
+    right: string | null;
+    value?: number;
+    label: string;
+}>;
 
 export default function App() {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges] = useEdgesState<Edge>([]);
 
     useEffect(() => {
-        let x = 0;
-        let y = 0;
-        const initialNodes: Node[] = [];
+        const nodesMap = new Map<string, Node>();
         const initialEdges: Edge[] = [];
-
         let parsingInput = true;
+
         for (const line of input) {
             if (line == "") {
                 parsingInput = false;
@@ -32,11 +41,17 @@ export default function App() {
             if (parsingInput) {
                 const wire = line.substring(0, 3);
                 const value = +line.substring(5);
-                initialNodes.push({
+                const numberPart = +wire.substring(1);
+                let nodeX = numberPart * 2 * (NODE_SIZE + NODE_X_SPACING);
+                if (wire.charAt(0) === "y") {
+                    nodeX += NODE_SIZE + NODE_X_SPACING;
+                }
+                nodesMap.set(wire, {
                     id: wire,
-                    width: 50,
-                    position: { x: x++, y: y++ },
-                    data: { label: wire, value },
+                    height: NODE_SIZE,
+                    width: NODE_SIZE,
+                    position: { x: nodeX, y: 0 },
+                    data: { label: wire, value, left: null, right: null },
                 });
                 continue;
             }
@@ -60,21 +75,23 @@ export default function App() {
                     break;
             }
 
-            let nodeX = x++;
-            let nodeY = y++;
+            const nodeX = -1;
+            const nodeY = -1;
 
-            if (out.charAt(0) === "z") {
-                nodeY = 1000;
-                const numberPart = +out.substring(1);
-                nodeX = numberPart * 55;
-            }
+            // if (out.charAt(0) === "z") {
+            //     const numberPart = +out.substring(1);
+            //     nodeX = numberPart * 2 * (NODE_SIZE + NODE_X_SPACING);
+            //     nodeY = 2000;
+            // }
 
-            initialNodes.push({
+            nodesMap.set(out, {
                 id: out,
-                width: 50,
+                height: NODE_SIZE,
+                width: NODE_SIZE,
                 position: { x: nodeX, y: nodeY },
-                data: { label: out },
+                data: { label: out, left, right },
             });
+
             initialEdges.push(
                 {
                     id: `${left}-${out}`,
@@ -93,6 +110,12 @@ export default function App() {
             );
         }
 
+        const initialNodes = Array.from(nodesMap.values());
+
+        for (let i = 0; i < initialNodes.length; i++) {
+            setNodePosition(initialNodes[i], nodesMap);
+        }
+
         setNodes(initialNodes);
         setEdges(initialEdges);
     }, [setEdges, setNodes]);
@@ -109,6 +132,22 @@ export default function App() {
             <Controls />
         </ReactFlow>
     );
+}
+
+function setNodePosition(node: Node, nodesMap: Map<string, Node>) {
+    if (node.position.x >= 0 || node.position.y >= 0) {
+        return;
+    }
+
+    const left = nodesMap.get(node.data.left ?? "NONE");
+    if (!left) return;
+    setNodePosition(left, nodesMap);
+    const right = nodesMap.get(node.data.right ?? "NONE");
+    if (!right) return;
+    setNodePosition(right, nodesMap);
+
+    node.position.x = (left.position.x + right.position.x) / 2;
+    node.position.y = left.position.y + NODE_SIZE + NODE_Y_SPACING;
 }
 
 const input = [

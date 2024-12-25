@@ -11,7 +11,7 @@ import (
 //
 // Part 1: 94426
 //
-// Part 2:
+// Part 2: 118392478819140
 type Day21 struct {
 	Input []string
 }
@@ -27,18 +27,18 @@ type Day21 struct {
 *     | 0 | A |
 *     +---+---+
  */
-var numericKeypadNeighbors = map[rune][][]rune{
-	'A': {{'<', '0'}, {'^', '3'}},
-	'0': {{'>', 'A'}, {'^', '2'}},
-	'1': {{'>', '2'}, {'^', '4'}},
-	'2': {{'v', '0'}, {'<', '1'}, {'>', '3'}, {'^', '5'}},
-	'3': {{'v', 'A'}, {'<', '2'}, {'^', '6'}},
-	'4': {{'v', '1'}, {'>', '5'}, {'^', '7'}},
-	'5': {{'v', '2'}, {'<', '4'}, {'>', '6'}, {'^', '8'}},
-	'6': {{'v', '3'}, {'<', '5'}, {'^', '9'}},
-	'7': {{'v', '4'}, {'>', '8'}},
-	'8': {{'v', '5'}, {'<', '7'}, {'>', '9'}},
-	'9': {{'v', '6'}, {'<', '8'}},
+var numpad = map[string]rune{
+	"0,0": '7',
+	"0,1": '8',
+	"0,2": '9',
+	"1,0": '4',
+	"1,1": '5',
+	"1,2": '6',
+	"2,0": '1',
+	"2,1": '2',
+	"2,2": '3',
+	"3,1": '0',
+	"3,2": 'A',
 }
 
 /*
@@ -48,157 +48,215 @@ var numericKeypadNeighbors = map[rune][][]rune{
 * | < | v | > |
 * +---+---+---+
  */
-var directionalKeypadNeighbors = map[rune][][]rune{
-	'A': {{'<', '^'}, {'v', '>'}},
-	'^': {{'>', 'A'}, {'v', 'v'}},
-	'v': {{'^', '^'}, {'<', '<'}, {'>', '>'}},
-	'<': {{'>', 'v'}},
-	'>': {{'<', 'v'}, {'^', 'A'}},
+var dirpad = map[string]rune{
+	"0,1": '^',
+	"0,2": 'A',
+	"1,0": '<',
+	"1,1": 'v',
+	"1,2": '>',
 }
 
+var instructions = []rune{'^', 'A', '<', 'v', '>'}
+
 func (d Day21) Part1() string {
-	// shortestNumericPaths := getAllKeyboardNeighborPaths(numericKeypadNeighbors)
-	// shortestDirectionalPaths := getAllKeyboardNeighborPaths(directionalKeypadNeighbors)
+	sum := 0
+	for _, line := range d.Input {
+		num, err := strconv.Atoi(strings.TrimRight(line, "A"))
+		utils.PanicErr(err)
+		length := solve(line, 2)
+		sum += num * length
+	}
 
-	answer := 0
-	input := d.Input[0]
-
-	_ = solve(input)
-
-	// numericPart, err := strconv.Atoi(strings.TrimRight(strings.TrimLeft(input, "0"), "A"))
-	// utils.PanicErr(err)
-	// answer += numericPart * len(minPath)
-	return strconv.Itoa(answer + 1)
+	return strconv.Itoa(sum)
 }
 
 func (d Day21) Part2() string {
-	return "Not Implemented"
+	sum := 0
+	for _, line := range d.Input {
+		num, err := strconv.Atoi(strings.TrimRight(line, "A"))
+		utils.PanicErr(err)
+		length := solve(line, 25)
+		sum += num * length
+	}
+
+	return strconv.Itoa(sum)
 }
 
-type Path struct {
-	value byte
-	index int
-	cost  int
+type D21Point struct {
+	row, col int
 }
 
-func (p Path) Less(other Path) bool {
-	return p.cost > other.cost
+func ToD21Point(key string) D21Point {
+	coords := strings.Split(key, ",")
+	row, _ := strconv.Atoi(coords[0])
+	col, _ := strconv.Atoi(coords[1])
+	return D21Point{row, col}
 }
 
-func solve(input string) string {
-	pq := utils.NewPriorityQueue[Path]()
-	pq.Push(Path{'A', 0, 0})
-	visited := make(map[string]string)
-	for current, ok := pq.Pop(); ok; current, ok = pq.Pop() {
-		key := string(current.value) + ":" + strconv.Itoa(current.index)
+func (p D21Point) String() string {
+	return strconv.Itoa(p.row) + "," + strconv.Itoa(p.col)
+}
 
-		if _, ok := visited[key]; ok {
+func (p *D21Point) Execute(instruction rune, pad map[string]rune) (D21Point, rune, bool) {
+	switch instruction {
+	case '^':
+		return D21Point{p.row - 1, p.col}, '0', false
+	case 'v':
+		return D21Point{p.row + 1, p.col}, '0', false
+	case '<':
+		return D21Point{p.row, p.col - 1}, '0', false
+	case '>':
+		return D21Point{p.row, p.col + 1}, '0', false
+	case 'A':
+		return D21Point{p.row, p.col}, pad[p.String()], true
+	}
+	panic("Invalid instruction")
+}
+
+type NumpadNode struct {
+	cost        int
+	pos         D21Point
+	instruction rune
+	length      int
+}
+
+func (n NumpadNode) Less(other NumpadNode) bool {
+	return n.cost < other.cost
+}
+
+type NumpadPathNode struct {
+	current rune
+	cost    int
+	length  int
+}
+
+func (n NumpadPathNode) Less(other NumpadPathNode) bool {
+	return n.cost < other.cost
+}
+
+func solve(code string, depth int) int {
+	pq := utils.NewPriorityQueue[NumpadNode]()
+	costmap := make(map[string]int)
+
+	pq.Push(NumpadNode{
+		cost:        0,
+		pos:         D21Point{row: 3, col: 2},
+		instruction: 'A',
+		length:      0,
+	})
+
+	cache := make(map[string]int)
+	for !pq.IsEmpty() {
+		node, _ := pq.Pop()
+		if node.length == len(code) {
+			return node.cost
+		}
+
+		key := posInstructionLengthKey(node.pos, node.instruction, node.length)
+		if _, ok := costmap[key]; ok {
 			continue
 		}
-		visited[key] = key
+		costmap[key] = node.cost
 
-		if current.index == len(input) {
-			return ""
-		}
+		for _, newInstruction := range instructions {
+			newPosition, output, hasOutput := node.pos.Execute(newInstruction, numpad)
+			if _, ok := numpad[newPosition.String()]; !ok {
+				continue
+			}
 
-		// Pressing action
-		if current.value == input[current.index] {
-			pq.Push(Path{
-				value: current.value,
-				index: current.index + 1,
-			})
-		}
+			newLength := node.length
+			if hasOutput {
+				if output != rune(code[newLength]) {
+					continue
+				}
+				newLength++
+			}
 
-		// Moving
-		for _, neighbor := range numericKeypadNeighbors[rune(current.value)] {
-			pq.Push(Path{
-				value: byte(neighbor[1]),
-				index: current.index,
+			newCost := node.cost + calculateCost(newInstruction, node.instruction, depth, cache)
+			pq.Push(NumpadNode{
+				cost:        newCost,
+				pos:         newPosition,
+				instruction: newInstruction,
+				length:      newLength,
 			})
 		}
 	}
-	return ""
+
+	panic("No solution found")
 }
 
-func calculateCost(target rune, current rune, depth int) int {
+type DirpadNode struct {
+	cost        int
+	pos         D21Point
+	instruction rune
+	output      rune
+	hasOutput   bool
+}
+
+func (n DirpadNode) Less(other DirpadNode) bool {
+	return n.cost < other.cost
+}
+
+func calculateCost(target rune, previousInstruction rune, depth int, cache map[string]int) int {
+	key := targetPrevDepthKey(target, previousInstruction, depth)
+	if val, ok := cache[key]; ok {
+		return val
+	}
+
 	if depth == 0 {
+		cache[key] = 1
 		return 1
 	}
 
-	pq := utils.NewPriorityQueue[Path]()
-	pq.Push(Path{
-		value: byte(current),
-		cost:  0,
-		index: 0,
+	dirpadKeysToPoints := make(map[rune]string)
+	for k, v := range dirpad {
+		dirpadKeysToPoints[v] = k
+	}
+
+	pq := utils.NewPriorityQueue[DirpadNode]()
+	pq.Push(DirpadNode{
+		cost:        0,
+		pos:         ToD21Point(dirpadKeysToPoints[previousInstruction]),
+		instruction: 'A',
+		output:      '0',
+		hasOutput:   false,
 	})
 
-	for current, ok := pq.Pop(); ok; current, ok = pq.Pop() {
-		if current.value == byte(target) {
-			return current.cost
+	for !pq.IsEmpty() {
+		node, _ := pq.Pop()
+		if node.hasOutput && node.output == target {
+			cache[key] = node.cost
+			return node.cost
 		}
 
-		for _, neighbor := range directionalKeypadNeighbors[rune(current.value)] {
-			pq.Push(Path{
-				value: byte(neighbor[1]),
-				cost:  current.cost + 1,
+		for _, newInstruction := range instructions {
+			newPosition, newOutput, hasOutput := node.pos.Execute(newInstruction, dirpad)
+			if _, ok := dirpad[newPosition.String()]; !ok {
+				continue
+			}
+
+			if hasOutput && newOutput != target {
+				continue
+			}
+
+			newCost := node.cost + calculateCost(newInstruction, node.instruction, depth-1, cache)
+			pq.Push(DirpadNode{
+				cost:        newCost,
+				pos:         newPosition,
+				instruction: newInstruction,
+				output:      newOutput,
+				hasOutput:   hasOutput,
 			})
 		}
 	}
 
-	return 0
+	panic("No solution found")
 }
 
-func getAllKeyboardNeighborPaths(neighbors map[rune][][]rune) map[rune]map[rune][]string {
-	shortestPaths := make(map[rune]map[rune][]string)
-	for start := range neighbors {
-		shortestPaths[start] = make(map[rune][]string)
-		for end := range neighbors {
-			if start == end {
-				continue
-			}
-			shortestPaths[start][end] = getKeyboardNeighborPaths(start, end, neighbors)
-		}
-	}
-	return shortestPaths
+func posInstructionLengthKey(pos D21Point, instruction rune, length int) string {
+	return pos.String() + "," + string(instruction) + "," + strconv.Itoa(length)
 }
 
-func getKeyboardNeighborPaths(start rune, end rune, neighbors map[rune][][]rune) []string {
-	q := utils.NewPriorityQueue[KeypadPath]()
-	q.Push(KeypadPath{[]rune{'0', start}, "", ""})
-	paths := make([]string, 0)
-	bestPath := 999
-	for !q.IsEmpty() {
-		current, _ := q.Pop()
-		if strings.ContainsRune(current.points, current.value[1]) {
-			continue
-		}
-		if current.value[0] != '0' {
-			current.path += string(current.value[0])
-		}
-		current.points += string(current.value[1])
-		if current.value[1] == end {
-			if len(current.path) < bestPath {
-				bestPath = len(current.path)
-				paths = []string{current.path}
-			} else if len(current.path) == bestPath {
-				paths = append(paths, current.path)
-			}
-			continue
-		}
-		for _, neighbor := range neighbors[current.value[1]] {
-			q.Push(KeypadPath{neighbor, current.points, current.path})
-		}
-	}
-
-	return paths
-}
-
-type KeypadPath struct {
-	value  []rune
-	points string
-	path   string
-}
-
-func (p KeypadPath) Less(other KeypadPath) bool {
-	return len(p.path) > len(other.path)
+func targetPrevDepthKey(target rune, previousInstruction rune, depth int) string {
+	return string(target) + "," + string(previousInstruction) + "," + strconv.Itoa(depth)
 }
